@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- スタート画面 -->
+  <div id="homeScreen">
+    <h1>トレジャーハント</h1>
+
+    <div class="form-row">
+      <label>プレイヤー人数：</label>
+      <select id="playerCount">
+        <option value="2" selected>2人</option>
+        <option value="3">3人</option>
+        <option value="4">4人</option>
+      </select>
+
+      <label>ボードサイズ：</label>
+      <select id="boardSize">
+        <option value="7" selected>7 × 7</option>
+        <option value="9">9 × 9</option>
+        <option value="11">11 × 11</option>
+      </select>
+
+      <label>宝箱の数：</label>
+      <select id="treasureCount"></select>
+    </div>
+
+    <div id="playerNameContainer"></div>
+
+    <button id="startButton">ゲーム開始</button>
+  </div>
+
+  <!-- ゲーム画面 -->
+  <div id="gameScreen" style="display:none;">
+    <div id="turnInfo"></div>
+    <div id="treasureInfo"></div>
+
+    <canvas id="boardCanvas"></canvas>
+
+    <div id="controls">
+      <button id="btnUp">↑</button>
+      <div>
+        <button id="btnLeft">←</button>
+        <button id="btnRight">→</button>
+      </div>
+      <button id="btnDown">↓</button>
+    </div>
+
+    <div id="message"></div>
+  </div>
+
+  <!-- リザルト画面 -->
+  <div id="resultScreen" style="display:none;">
+    <h2>結果発表</h2>
+    <div id="resultArea"></div>
+    <button id="restartButton">もう一度遊ぶ</button>
+  </div>
+
+  <script type="module" src="src/main.js?v=20240205"></script>
+</body>
+</html>
