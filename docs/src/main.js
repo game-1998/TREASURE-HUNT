@@ -1,7 +1,8 @@
-import { showScreen } from "./ui.js";
+import { showScreen, render } from "./ui.js";
 import { startGame } from "./turn.js";
 import { game, initializeGame } from "./state.js";
 import {movePlayer} from "./player.js"
+import { handleBoardClick } from "./boad.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   showScreen("homeScreen");
@@ -88,5 +89,49 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnDown").onclick = () => movePlayer(0, 1);
   document.getElementById("btnLeft").onclick = () => movePlayer(-1, 0);
   document.getElementById("btnRight").onclick = () => movePlayer(1, 0);
+
+  document.getElementById("breakButton").onclick = () => {
+    game.mode = "break";
+  };
+
+  const canvas = document.getElementById("boardCanvas");
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (game.mode !== "break") return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / game.tileSize);
+    const y = Math.floor((e.clientY - rect.top) / game.tileSize);
+
+    // 範囲外ならハイライト消す
+    if (x < 0 || y < 0 || x >= game.board.length || y >= game.board.length) {
+      game.highlight = null;
+      render();
+      return;
+    }
+
+    // プレイヤーがいるマスはハイライトしない
+    for (const p of game.players) {
+      if (p.x === x && p.y === y) {
+        game.highlight = null;
+        render();
+        return;
+      }
+    }
+
+    // ハイライト更新
+    game.highlight = { x, y };
+    render();
+  });
+
+  canvas.addEventListener("pointerup", (e) => {
+    if (game.mode !== "break") return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.floor((e.clientX - rect.left) / game.tileSize);
+    const y = Math.floor((e.clientY - rect.top) / game.tileSize);
+
+    handleBoardClick(x, y);
+  });
 
 });

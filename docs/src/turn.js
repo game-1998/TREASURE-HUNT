@@ -18,7 +18,6 @@ export function startTurn() {
 export function endTurn() {
   game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
   startTurn();
-  render();
 }
 
 export function endGame() {

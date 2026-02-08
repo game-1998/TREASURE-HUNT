@@ -11,7 +11,10 @@ export const game = {
   currentPlayerId: 0,
   remainingActions: 2,
   phase: "start",
-  tileSize: 0
+  tileSize: 0,
+  mode: "normal",
+  highlight: null,
+  animation: null
 };
 
 export function initializeGame() {

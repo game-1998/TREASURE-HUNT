@@ -1,7 +1,7 @@
 import { game, updateGlowStates } from "./state.js";
-import { render, updateTreasureInfo, updateTurnInfo } from "./ui.js";
+import { render, triggerTreasureAnimation, updateTreasureInfo, updateTurnInfo } from "./ui.js";
 import { endTurn, endGame } from "./turn.js";
-import { pastelColors } from "./boad.js";
+import { drawBoard, pastelColors } from "./boad.js";
 
 export const playerColors = ["blue", "red", "green", "purple"];
 
@@ -41,9 +41,9 @@ export function drawPlayers() {
     if (p.isGlowing) {
       ctx.save();
       ctx.strokeStyle = "yellow";
-      ctx.lineWidth = 4;
+      ctx.lineWidth = r * 0.17;
       ctx.shadowColor = "yellow";
-      ctx.shadowBlur = 12;
+      ctx.shadowBlur = r * 0.51;
       ctx.beginPath();
       ctx.arc(cx, cy, r * 1.4, 0, Math.PI * 2);
       ctx.stroke();
@@ -57,6 +57,9 @@ export function drawPlayers() {
 }
 
 export function movePlayer(dx, dy) {
+  if (game.animation) {
+    return;
+  }
   const p = game.players[game.currentPlayerId];
 
   const nx = p.x + dx;
@@ -64,6 +67,40 @@ export function movePlayer(dx, dy) {
 
   // ボード外チェック
   if (nx < 0 || ny < 0 || nx >= game.board.length || ny >= game.board.length) {
+    return; // 動かない
+  }
+
+  // 他プレイヤーがいるマスには入れない
+  for (const other of game.players) {
+    if (other !== p && other.x === nx && other.y === ny) {
+      return; // 動かない
+    }
+  }
+
+  // 他人の色のマスには入れない
+  const tileColor = game.board[nx][ny].color;
+  if (tileColor && tileColor !== pastelColors[p.color]) {
+
+    // ハイライトセット
+    game.highlight = { x: nx, y: ny };
+    render();
+
+    setTimeout(() => {
+      if (confirm("このマスを無色化しますか？")) {
+        game.board[nx][ny].color = null;
+        game.remainingActions--;
+        updateTurnInfo();
+        game.highlight = null; // ハイライト解除
+        render();
+        // アクションが尽きたらターン終了
+        if (game.remainingActions <= 0) {
+          endTurn();
+        }
+      } else {
+        game.highlight = null; // キャンセル時も解除
+        render();
+      }
+    }, 50);
     return; // 動かない
   }
 
@@ -77,6 +114,20 @@ export function movePlayer(dx, dy) {
     game.board[nx][ny].treasure = false;     // マスから消す
     p.collectedChests.push({ x: nx, y: ny, score: chest.score }); // プレイヤーに追加
     game.remainingTreasures--; // 残り宝箱数を減らす
+
+    triggerTreasureAnimation(nx, ny);
+
+    const spreadMin = game.tileSize * 0.8;
+    const spreadMax = game.tileSize * 1.4;
+    for (let i = 0; i < 10; i++) {
+      game.animation.particles.push({
+        angle: Math.random() * Math.PI * 2,
+        dist: 0,
+        maxDist: spreadMin + Math.random() * (spreadMax - spreadMin),
+        alpha: 1
+      });
+    }
+
     updateTreasureInfo();
   }
 
@@ -94,7 +145,7 @@ export function movePlayer(dx, dy) {
 
   // 残り宝箱が0ならゲーム終了
   if (game.remainingTreasures === 0) {
-    setTimeout(() => endGame(), 300);
+    setTimeout(() => endGame(), 3500);
     return; // これ以上処理しない
   }
 

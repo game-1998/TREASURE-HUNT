@@ -1,8 +1,11 @@
 body {
   text-align: center;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .form-row {
   margin-bottom: 10px;
   display: block;
 }
+
