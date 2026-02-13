@@ -12,25 +12,26 @@
   <div id="homeScreen">
     <h1>トレジャーハント</h1>
 
-    <div class="form-row">
-      <label>プレイヤー人数：</label>
+    <div class="form-row settings-row">
+      <label>プレイヤー人数</label>
       <select id="playerCount">
         <option value="2" selected>2人</option>
         <option value="3">3人</option>
         <option value="4">4人</option>
       </select>
 
-      <label>ボードサイズ：</label>
+      <label>ボードサイズ</label>
       <select id="boardSize">
         <option value="7" selected>7 × 7</option>
         <option value="9">9 × 9</option>
         <option value="11">11 × 11</option>
       </select>
 
-      <label>宝箱の数：</label>
+      <label>宝箱の数</label>
       <select id="treasureCount"></select>
     </div>
 
+    <!-- プレイヤー名入力欄（動的に生成） -->
     <div id="playerNameContainer"></div>
 
     <button id="startButton">ゲーム開始</button>
@@ -62,6 +63,6 @@
     <button id="restartButton">もう一度遊ぶ</button>
   </div>
 
-  <script type="module" src="src/main.js?v=20240208"></script>
+  <script type="module" src="src/main.js?v=20240213"></script>
 </body>
 </html>

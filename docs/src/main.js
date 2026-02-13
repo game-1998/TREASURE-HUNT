@@ -3,24 +3,75 @@ import { startGame } from "./turn.js";
 import { game, initializeGame } from "./state.js";
 import {movePlayer} from "./player.js"
 import { handleBoardClick } from "./boad.js";
+import { colorList } from "./state.js";
+
+// パレット DOM を作る（最初は非表示）
+const palette = document.createElement("div");
+palette.id = "colorPalette";
+palette.style.display = "none";
+document.body.appendChild(palette);
+
+let paletteOpenFor = null;
+palette.addEventListener("click", (e) => e.stopPropagation());
 
 document.addEventListener("DOMContentLoaded", () => {
   showScreen("homeScreen");
   const countSelect = document.getElementById("playerCount");
   const nameContainer = document.getElementById("playerNameContainer");
+
   function updatePlayerNameInputs() {
     const count = Number(countSelect.value);
     nameContainer.innerHTML = "";
+
+    // state 初期化
+    game.playerNames = new Array(count).fill("");
+    game.selectedColors = new Array(count).fill(null);
+
+    // 見出し行
+    const header = document.createElement("div");
+    header.className = "form-row headerRow";
+    header.innerHTML = `
+      <div class="headerCellPlayername">プレイヤー名</div>
+      <div class="headerCellPiece">色</div>
+    `;
+    nameContainer.appendChild(header);
+ 
     for (let i = 0; i < count; i++) {
-      const div = document.createElement("div");
-      div.className = "form-row";
-      div.innerHTML = `
-      <label>プレイヤー${i + 1} 名前：</label>
-      <input type="text" id="playerName${i}">
-      `;
-      nameContainer.appendChild(div);
+      const row = document.createElement("div");
+      row.className = "form-row";
+
+      // 名前入力欄
+      const nameInput = document.createElement("input");
+      nameInput.type = "text";
+      nameInput.placeholder = `プレイヤー${i + 1}`;
+      nameInput.id = `playerName${i}`;
+      nameInput.dataset.playerIndex = i;
+
+      nameInput.addEventListener("input", (e) => {
+        const idx = Number(e.target.dataset.playerIndex);
+        game.playerNames[idx] = e.target.value;
+      });
+
+      // 色選択エリア
+      const currentColorBox = document.createElement("div");
+      currentColorBox.className = "currentColorBox";
+      currentColorBox.dataset.playerIndex = i;
+
+      // 初期色（未選択ならグレー）
+      currentColorBox.style.background = "#ccc";
+
+      // クリックでパレットを開く
+      currentColorBox.addEventListener("click", (e) => {
+        const idx = Number(e.target.dataset.playerIndex);
+        openColorPalette(idx, currentColorBox);
+      });
+
+      row.appendChild(nameInput);
+      row.appendChild(currentColorBox);
+      nameContainer.appendChild(row);
     }
   }
+
   const boardSizeSelect = document.getElementById("boardSize");
   const treasureSelect = document.getElementById("treasureCount");
 
@@ -53,6 +104,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 人数変更時に更新
   countSelect.addEventListener("change", updatePlayerNameInputs);
+
+  document.addEventListener("click", (e) => {
+    // パレットが開いていないなら何もしない
+    if (paletteOpenFor === null) return;
+
+    // パレット自身 or currentColorBox をクリックした場合は閉じない
+    if (palette.contains(e.target) || e.target.classList.contains("currentColorBox")) {
+      return;
+    }
+
+    // それ以外をクリックしたら閉じる
+    closePalette();
+  });
 
   // ゲーム開始
   document.getElementById("startButton").onclick = () => {
@@ -135,3 +199,54 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 });
+
+function openColorPalette(playerIndex, anchorElement) {
+  // すでに開いているパレットがあれば閉じる
+  if (paletteOpenFor !== null) {
+    closePalette();
+  }
+
+  paletteOpenFor = playerIndex;
+  palette.innerHTML = "";
+
+  const used = new Set(game.selectedColors);
+
+  colorList.forEach(color => {
+    const btn = document.createElement("div");
+    btn.className = "paletteColor";
+    btn.style.background = color;
+
+    // 他プレイヤーが使っている色は選べない
+    if (used.has(color) && game.selectedColors[playerIndex] !== color) {
+      btn.classList.add("disabled");
+      // バツ印を追加
+      const xMark = document.createElement("div");
+      xMark.className = "xMark";
+      btn.appendChild(xMark);
+    }
+
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("disabled")) return;
+
+      game.selectedColors[playerIndex] = color;
+
+      // 表示中の色ボックスを更新
+      anchorElement.style.background = color;
+
+      closePalette();
+    });
+
+    palette.appendChild(btn);
+  });
+
+  // パレットを表示（位置調整）
+  const rect = anchorElement.getBoundingClientRect();
+  palette.style.left = rect.left + "px";
+  palette.style.top = rect.bottom + "px";
+  palette.style.display = "grid";
+}
+
+function closePalette() {
+  palette.style.display = "none";
+  paletteOpenFor = null;
+}

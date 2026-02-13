@@ -2,13 +2,6 @@ import { game } from "./state.js";
 import { render, updateTurnInfo } from "./ui.js";
 import { endTurn } from "./turn.js";
 
-export const pastelColors = {
-  blue: "#a8c8ff",     // パステルブルー
-  red: "#ffb3b3",      // パステルレッド
-  green: "#b3ffb3",    // パステルグリーン
-  purple: "#d6b3ff"    // パステルパープル
-};
-
 export function createBoard(size) {
   game.board = [];
   for (let x = 0; x < size; x++) {
@@ -68,7 +61,8 @@ export function handleBoardClick(x, y) {
 
     const tile = game.board[x][y];
     const p = game.players[game.currentPlayerId];
-    const myColor = pastelColors[p.color];
+    const playerColor = game.selectedColors[playerId];
+    const myColor = ColorMap[playerColor];
 
     if (tile.color && tile.color !== myColor) {
       game.highlight = { x, y };

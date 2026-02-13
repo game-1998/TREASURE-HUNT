@@ -4,8 +4,150 @@ body {
   touch-action: none;
 }
 
-.form-row {
-  margin-bottom: 10px;
-  display: block;
+#playerNameContainer {
+  width: 70dvw;
+  max-width: 500px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 20ch 32px; /* ← 全行共通の列幅 */
+  row-gap: 10px;
+  justify-content: center;
 }
+
+.form-row {
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.form-row input[type="text"] {
+  width: 20ch;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
+.headerRow {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.form-row,
+.headerRow {
+  display: contents;
+  align-items: center;
+  column-gap: 20px;
+}
+
+.headerCellPlayername,
+.headerCellPiece {
+  width: auto;
+}
+.headerCellPiece {
+  width: 32px;
+  height: 32px;       /* ← これが重要 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-row {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-content: center;
+  column-gap: 12px;
+  row-gap: 8px;
+}
+
+.settings-row label {
+  position: relative;
+  display: inline-block;
+  text-align: center; /* ← ラベル文字は中央揃え */
+  padding-right: 12px; /* ← コロンのスペース確保 */
+}
+
+.settings-row label::after {
+  content: "：";
+  position: absolute;
+  right: -7px;           /* ← コロンを右端に固定 */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.colorSelectArea {
+  display: flex;
+  gap: 10px;
+}
+
+.colorOption {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 3px solid transparent;
+}
+
+.colorOption.selected {
+  border-color: white;
+}
+
+.currentColorBox {
+  width: 32px;
+  height: 32px;
+  border: 2px solid #666;
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+#colorPalette {
+  position: absolute;
+  background: white;
+  padding: 8px;
+  border: 2px solid #666;
+  display: grid;
+  grid-template-columns: repeat(3, 32px);
+  gap: 6px;
+  z-index: 999;
+}
+
+.paletteColor {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #444;
+  position: relative;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.paletteColor.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.xMark {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.xMark::before,
+.xMark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140%;   /* ← ここで長さ調整（90%なら角まで届く） */
+  height: 3px;  /* ← 線の太さ */
+  background: #000000;
+  transform-origin: center;
+}
+
+.xMark::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.xMark::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
 

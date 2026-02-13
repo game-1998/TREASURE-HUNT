@@ -1,4 +1,4 @@
-import { pastelColors, createBoard } from "./boad.js";
+import { createBoard } from "./boad.js";
 import { createPlayers } from "./player.js";
 import { updateTreasureInfo, showScreen } from "./ui.js";
 
@@ -17,6 +17,18 @@ export const game = {
   animation: null
 };
 
+// 色候補
+export const ColorMap = {
+  "#1A2BFF": "#b9a8ff", // 青 → 紫寄りパステル（青と水色の距離を最大化）
+  "#FF7A00": "#ffc49a", // オレンジ → 赤寄りパステル（黄色と差が出る）
+  "#00A86B": "#b5f5c9", // 緑 → 黄緑寄りパステル（青・水色と差が出る）
+  "#FF006E": "#ffb0c9", // マゼンタ → 赤ピンク（暖色の中で独立）
+  "#FFD000": "#fff48a", // 黄 → レモン寄り（オレンジと差が出る）
+  "#00C8FF": "#a8f0ff", // 水色 → 緑寄り水色（青と差が出る）
+};
+
+export const colorList = Object.keys(ColorMap);
+
 export function initializeGame() {
   game.remainingTreasures = game.treasureCount;
   createBoard(game.boardSize);
@@ -26,7 +38,8 @@ export function initializeGame() {
 
   // 初期位置を塗る
   for (const p of game.players) {
-    game.board[p.x][p.y].color = pastelColors[p.color];
+    const playerColor = p.color;   // 濃い色
+    game.board[p.x][p.y].color = ColorMap[playerColor];
   }
   // 初期位置で光るかどうか判定
   updateGlowStates();

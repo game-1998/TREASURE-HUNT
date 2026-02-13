@@ -1,9 +1,7 @@
 import { game, updateGlowStates } from "./state.js";
 import { render, triggerTreasureAnimation, updateTreasureInfo, updateTurnInfo } from "./ui.js";
 import { endTurn, endGame } from "./turn.js";
-import { drawBoard, pastelColors } from "./boad.js";
-
-export const playerColors = ["blue", "red", "green", "purple"];
+import { ColorMap } from "./state.js";
 
 export function createPlayers() {
   game.players = [];
@@ -20,7 +18,7 @@ export function createPlayers() {
     game.players.push({
       x: positions[i].x,
       y: positions[i].y,
-      color: playerColors[i],
+      color: game.selectedColors[i],
       name: game.playerNames[i],
       isGlowing: false,
       collectedChests: []
@@ -79,7 +77,11 @@ export function movePlayer(dx, dy) {
 
   // 他人の色のマスには入れない
   const tileColor = game.board[nx][ny].color;
-  if (tileColor && tileColor !== pastelColors[p.color]) {
+  const playerId = game.currentPlayerId;
+  const playerColor = game.selectedColors[playerId];   // 濃い色
+  const myColor = ColorMap[playerColor];              // パステル色
+
+  if (tileColor && tileColor !== myColor) {
 
     // ハイライトセット
     game.highlight = { x: nx, y: ny };
@@ -135,7 +137,7 @@ export function movePlayer(dx, dy) {
   updateGlowStates();
 
   // 移動したマスを自分の色に塗る
-  game.board[nx][ny].color = pastelColors[p.color];
+  game.board[nx][ny].color = ColorMap[playerColor];
   
   // アクション消費
   game.remainingActions--;
