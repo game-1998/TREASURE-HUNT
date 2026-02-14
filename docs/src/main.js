@@ -155,6 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnRight").onclick = () => movePlayer(1, 0);
 
   document.getElementById("breakButton").onclick = () => {
+    if (game.locked) return;
     game.mode = "break";
   };
 

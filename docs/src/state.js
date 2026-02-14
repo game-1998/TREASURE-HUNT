@@ -14,16 +14,17 @@ export const game = {
   tileSize: 0,
   mode: "normal",
   highlight: null,
-  animation: null
+  animation: null,
+  locked: false
 };
 
 // 色候補
 export const ColorMap = {
   "#1A2BFF": "#b9a8ff", // 青 → 紫寄りパステル（青と水色の距離を最大化）
-  "#FF7A00": "#ffc49a", // オレンジ → 赤寄りパステル（黄色と差が出る）
+  "#FF7A00": "#fab380", // オレンジ → 赤寄りパステル（黄色と差が出る）
   "#00A86B": "#b5f5c9", // 緑 → 黄緑寄りパステル（青・水色と差が出る）
-  "#FF006E": "#ffb0c9", // マゼンタ → 赤ピンク（暖色の中で独立）
-  "#FFD000": "#fff48a", // 黄 → レモン寄り（オレンジと差が出る）
+  "#ff0037": "#ff7895", // マゼンタ → 赤ピンク（暖色の中で独立）
+  "#c24e9b": "#eba0d3",
   "#00C8FF": "#a8f0ff", // 水色 → 緑寄り水色（青と差が出る）
 };
 
@@ -35,6 +36,7 @@ export function initializeGame() {
   createPlayers();
   placeTreasures();
   updateTreasureInfo();
+  setupCanvas(game.boardSize);
 
   // 初期位置を塗る
   for (const p of game.players) {
@@ -43,6 +45,17 @@ export function initializeGame() {
   }
   // 初期位置で光るかどうか判定
   updateGlowStates();
+}
+
+function setupCanvas(boardSize) {
+  const canvas = document.getElementById("boardCanvas");
+
+  const cellSize = 83; // 1マスの論理ピクセル数（ゲームの都合で決める）
+  const size = cellSize * boardSize;
+
+  // 内部解像度（論理座標）
+  canvas.width = size;
+  canvas.height = size;
 }
 
 export function placeTreasures() {

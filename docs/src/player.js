@@ -1,5 +1,5 @@
 import { game, updateGlowStates } from "./state.js";
-import { render, triggerTreasureAnimation, updateTreasureInfo, updateTurnInfo } from "./ui.js";
+import { render, renderPlayerInfo, triggerTreasureAnimation, updateTreasureInfo, updateTurnInfo } from "./ui.js";
 import { endTurn, endGame } from "./turn.js";
 import { ColorMap } from "./state.js";
 
@@ -55,7 +55,7 @@ export function drawPlayers() {
 }
 
 export function movePlayer(dx, dy) {
-  if (game.animation) {
+  if (game.animation || game.locked || game.mode == "break") {
     return;
   }
   const p = game.players[game.currentPlayerId];
@@ -131,6 +131,7 @@ export function movePlayer(dx, dy) {
     }
 
     updateTreasureInfo();
+    renderPlayerInfo();
   }
 
   // 全プレイヤーの光る状態を更新

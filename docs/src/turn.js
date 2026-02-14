@@ -1,4 +1,4 @@
-import { render, renderResultScreen, updateTurnInfo, showScreen } from "./ui.js";
+import { render, renderResultScreen, updateTurnInfo, showScreen, renderPlayerInfo } from "./ui.js";
 import { game } from "./state.js";
 
 export function startGame() {
@@ -8,6 +8,9 @@ export function startGame() {
 
   startTurn();
   render();
+  requestAnimationFrame(() => {
+    renderPlayerInfo();
+  });
 }
 
 export function startTurn() {
@@ -18,6 +21,14 @@ export function startTurn() {
 export function endTurn() {
   game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
   startTurn();
+  if (!game.animation) {
+    showTurnChange(game.players[game.currentPlayerId].name);
+  } else {
+    setTimeout(() => {
+      showTurnChange(game.players[game.currentPlayerId].name);
+  }, 3000);
+  }
+  
 }
 
 export function endGame() {
@@ -25,4 +36,27 @@ export function endGame() {
   // 必要なら画面遷移など
   showScreen("resultScreen");
   renderResultScreen();
+}
+
+export function showTurnChange(name) {
+  game.locked = true;
+  const overlay = document.getElementById("turnOverlay");
+  const dimmer = document.getElementById("turnDimmer");
+
+  overlay.textContent = `${name}　のターン！`;
+
+  // 暗転
+  dimmer.style.opacity = 1;
+
+  // テキスト表示
+  setTimeout(() => {
+    overlay.style.opacity = 1;
+  }, 100);
+
+  // フェードアウト
+  setTimeout(() => {
+    overlay.style.opacity = 0;
+    dimmer.style.opacity = 0;
+    game.locked = false;
+  }, 1700);
 }

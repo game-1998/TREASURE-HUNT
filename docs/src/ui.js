@@ -26,12 +26,36 @@ export function updateTurnInfo() {
   const div = document.getElementById("turnInfo");
   const current = game.players[game.currentPlayerId];
 
-  div.textContent = `ターン: ${current.name}　残りアクション: ${game.remainingActions}回`;
+  div.innerHTML = `ターン: ${current.name}　残り回数: ${game.remainingActions}回`;
 }
 
 export function updateTreasureInfo() {
-  const el = document.getElementById("treasureInfo");
-  el.textContent = `残り宝箱: ${game.remainingTreasures}`;
+  const container = document.getElementById("treasureInfo");
+  container.innerHTML = "";
+
+  const label = document.createElement("div");
+  label.textContent = "残り宝箱：";
+  container.appendChild(label);
+
+  const grid = document.createElement("div");
+  grid.id = "treasureGrid";
+  container.appendChild(grid);
+
+  const max = 10;
+  const count = game.remainingTreasures;
+
+  for (let i = 0; i < max; i++) {
+    if (i < count) {
+      const img = document.createElement("img");
+      img.src = "./src/images/chest_close.png";
+      img.alt = "treasure";
+      grid.appendChild(img);
+    } else {
+      const empty = document.createElement("div");
+      empty.className = "empty";
+      grid.appendChild(empty);
+    }
+  }
 }
 
 export function renderResultScreen() {
@@ -68,8 +92,6 @@ export function triggerTreasureAnimation(x, y) {
 }
 
 export function drawTreasureAnimation() {
-  console.log("drawTreasureAnimation 呼び出し", game.animation.progress);
-
   const canvas = document.getElementById("boardCanvas");
   const ctx = canvas.getContext("2d");
 
@@ -107,7 +129,6 @@ export function drawTreasureAnimation() {
 
   // --- 後光（光のリング） ---
   if (t > 0.6 && t < 1.8) {
-    console.log("後光描画中 t=", t);
     const p = (t - 0.6) / 1.2; // 0 → 1
     const radius = game.tileSize * 2 * p;
     const alpha = 0.6 * (1 - p);
@@ -128,10 +149,9 @@ export function drawTreasureAnimation() {
     ctx.restore();
   }
 
-  console.log("粒子数:", game.animation.particles.length);
   // --- キラキラ粒子 ---
   if (t > 0.6 && t < 2) {
-    const particleSize = game.tileSize * 0.035;
+    const particleSize = game.tileSize * 0.05;
     for (const p of game.animation.particles) {
       // 進行
       p.dist = p.maxDist * ((t - 0.6) / 1.4);
@@ -139,8 +159,6 @@ export function drawTreasureAnimation() {
 
       const px = baseX + Math.cos(p.angle) * p.dist;
       const py = baseY + Math.sin(p.angle) * p.dist;
-
-      console.log("粒子描画 px,py=", px, py, "alpha=", p.alpha);
 
       ctx.save();
       ctx.globalAlpha = p.alpha;
@@ -173,4 +191,105 @@ export function drawTreasureAnimation() {
     game.animation = null;
   }
 }
+
+export function renderPlayerInfo() {
+  const boxes = {
+    "top-left": document.getElementById("playerInfoTopLeft"),
+    "top-right": document.getElementById("playerInfoTopRight"),
+    "bottom-right": document.getElementById("playerInfoBottomRight"),
+    "bottom-left": document.getElementById("playerInfoBottomLeft")
+  };
+
+  // 一旦全部クリア
+  Object.values(boxes).forEach(b => b.innerHTML = "");
+
+  // プレイヤー順に4隅へ固定配置（位置は後で決める）
+  const order = ["top-left", "bottom-right", "top-right", "bottom-left"];
+
+  game.players.forEach((p, i) => {
+    const box = boxes[order[i]];
+
+    const isRightSide = (i === 1 || i === 2); // ★ 右側だけ反転
+
+    if (isRightSide) {
+      // ★ 右側は左右反転レイアウト
+      box.innerHTML = `
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:6px;
+          justify-content:flex-end;
+        ">
+          <span style="text-align:right;">${p.name}</span>
+          <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
+          </div>
+          <div style="text-align:right;">
+            ${p.collectedChests.length} :宝箱
+          </div>
+      `;
+    } else {
+      // ★ 左側は従来の並び
+      box.innerHTML = `
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
+          <span>${p.name}</span>
+        </div>
+        <div style="text-align:left;">
+          宝箱: ${p.collectedChests.length}
+        </div>
+      `;
+    }
+  });
+
+  // HTML が入って高さが決まった後に位置を決める
+  positionPlayerInfoBoxes();
+}
+
+
+function positionPlayerInfoBoxes() {
+  const canvas = document.getElementById("boardCanvas");
+  const rect = canvas.getBoundingClientRect();
+
+  console.log("=== Canvas rect ===");
+  console.log("left:", rect.left, "top:", rect.top);
+  console.log("right:", rect.right, "bottom:", rect.bottom);
+  console.log("width:", rect.width, "height:", rect.height);
+
+  // 左上
+  const tl = document.getElementById("playerInfoTopLeft");
+  const tlH = tl.offsetHeight;
+  const tlX = rect.left;
+  const tlY = rect.top - tlH;
+  tl.style.left = tlX + "px";
+  tl.style.top = tlY + "px";
+  console.log("TopLeft placed at:", tlX, tlY);
+
+  // 右上
+  const tr = document.getElementById("playerInfoTopRight");
+  const trW = tr.offsetWidth;
+  const trH = tr.offsetHeight;
+  const trX = rect.right - trW;
+  const trY = rect.top - trH;
+  tr.style.left = trX + "px";
+  tr.style.top = trY + "px";
+  console.log("TopRight placed at:", trX, trY);
+
+  // 右下
+  const br = document.getElementById("playerInfoBottomRight");
+  const brW = br.offsetWidth;
+  const brX = rect.right - brW;
+  const brY = rect.bottom;
+  br.style.left = brX + "px";
+  br.style.top = brY + "px";
+  console.log("BottomRight placed at:", brX, brY);
+
+  // 左下
+  const bl = document.getElementById("playerInfoBottomLeft");
+  const blX = rect.left;
+  const blY = rect.bottom;
+  bl.style.left = blX + "px";
+  bl.style.top = blY + "px";
+  console.log("BottomLeft placed at:", blX, blY);
+}
+
 
