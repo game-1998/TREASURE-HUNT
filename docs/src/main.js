@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // 名前入力欄
       const nameInput = document.createElement("input");
+      nameInput.className = "nameInput"
       nameInput.type = "text";
       nameInput.placeholder = `プレイヤー${i + 1}`;
       nameInput.id = `playerName${i}`;
@@ -120,6 +121,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ゲーム開始
   document.getElementById("startButton").onclick = () => {
+    // 色が未選択のプレイヤーがいるかチェック
+    if (game.selectedColors.some(c => c === null)) {
+      alert("プレイヤー全員の色を選択してください");
+      return; // ゲーム開始しない
+    }
+
     const count = Number(countSelect.value);
     game.playerCount = count;
     game.boardSize = Number(boardSizeSelect.value);
@@ -242,8 +249,8 @@ function openColorPalette(playerIndex, anchorElement) {
 
   // パレットを表示（位置調整）
   const rect = anchorElement.getBoundingClientRect();
-  palette.style.left = rect.left + "px";
-  palette.style.top = rect.bottom + "px";
+  palette.style.left = (rect.left + rect.width / 2 - 64) + "px";
+  palette.style.top = rect.top - 28 + "px";
   palette.style.display = "grid";
 }
 

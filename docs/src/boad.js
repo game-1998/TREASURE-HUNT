@@ -16,8 +16,6 @@ export function drawBoard() {
   const canvas = document.getElementById("boardCanvas");
   const ctx = canvas.getContext("2d");
   const rect = canvas.getBoundingClientRect();
-  console.log("Canvas size:", canvas.width, canvas.height);
-  console.log("Canvas rect:", rect.width, rect.height);
 
   const size = game.board.length;
   const width = window.innerWidth - 40;

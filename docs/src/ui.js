@@ -4,6 +4,13 @@ import { drawPlayers } from "./player.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
+const chestImages = {
+  1: "./src/images/chest_1p.png",
+  2: "./src/images/chest_2p.png",
+  3: "./src/images/chest_3p.png",
+  5: "./src/images/chest_5p.png"
+};
+
 
 export function showScreen(name) {
   document.getElementById("homeScreen").style.display = "none";
@@ -26,7 +33,7 @@ export function updateTurnInfo() {
   const div = document.getElementById("turnInfo");
   const current = game.players[game.currentPlayerId];
 
-  div.innerHTML = `ターン: ${current.name}　残り回数: ${game.remainingActions}回`;
+  div.innerHTML = `ターン: <strong>${current.name}</strong>　残り回数: <strong>${game.remainingActions}回</strong>`;
 }
 
 export function updateTreasureInfo() {
@@ -60,26 +67,59 @@ export function updateTreasureInfo() {
 
 export function renderResultScreen() {
   const area = document.getElementById("resultArea");
-  area.innerHTML = ""; // 初期化
+  area.innerHTML = "";
 
-  for (const player of game.players) {
-    let total = 0;
+  game.players.forEach((player, i) => {
+    const box = document.createElement("div");
+    box.className = "resultPlayerBox";
+    box.dataset.playerIndex = i; // ← どのプレイヤーか識別
 
-    const chestLines = player.collectedChests.map(c => {
-      total += c.score;
-      return `・${c.score} 点`;
-    }).join("<br>");
-
-    area.innerHTML += `
-      <div class="playerResult">
-        <h3>${player.name}</h3>
-        <p>宝箱: ${player.collectedChests.length} 個</p>
-        <p>${chestLines}</p>
-        <p><strong>合計: ${total} 点</strong></p>
-        <hr>
+    box.innerHTML = `
+      <div class="resultPlayerHeader">
+        <span class="resultColorDot" style="background:${player.color};"></span>
+        ${player.name}
       </div>
+      <div class="resultChests" id="resultChests${i}"></div>
     `;
-  }
+
+    // タップで開封開始
+    box.addEventListener("click", () => {
+      startChestAnimationForPlayer(i);
+    });
+
+    area.appendChild(box);
+    
+    // まず閉じた宝箱を並べる
+    const chestArea = box.querySelector(".resultChests");
+    chestArea.innerHTML = "";
+    player.collectedChests.forEach(() => {
+      const img = document.createElement("img");
+      img.src = "./src/images/chest_close.png";
+      img.className = "resultChest";
+      chestArea.appendChild(img);
+    });
+  });
+
+  document.getElementById("resultScreen").style.display = "block";
+}
+
+function startChestAnimationForPlayer(playerIndex) {
+  const player = game.players[playerIndex];
+  const chestArea = document.getElementById(`resultChests${playerIndex}`);
+
+  // すでに開封済みなら何もしない
+  if (chestArea.dataset.opened === "true") return;
+  chestArea.dataset.opened = "true";
+
+  // 開封アニメ開始
+  player.collectedChests.forEach((chest, index) => {
+    const img = chestArea.children[index];
+
+    setTimeout(() => {
+      img.src = chestImages[chest.score];
+      img.classList.add("open");
+    }, 300 * index);
+  });
 }
 
 export function triggerTreasureAnimation(x, y) {
@@ -223,8 +263,8 @@ export function renderPlayerInfo() {
           <span style="text-align:right;">${p.name}</span>
           <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
           </div>
-          <div style="text-align:right;">
-            ${p.collectedChests.length} :宝箱
+          <div class="playerChestRow" style="justify-content:flex-end;">
+            ${chestIcons(p.collectedChests.length)} :宝箱
           </div>
       `;
     } else {
@@ -234,8 +274,8 @@ export function renderPlayerInfo() {
           <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
           <span>${p.name}</span>
         </div>
-        <div style="text-align:left;">
-          宝箱: ${p.collectedChests.length}
+        <div class="playerChestRow" style="justify-content:flex-start;">
+          宝箱: ${chestIcons(p.collectedChests.length)}
         </div>
       `;
     }
@@ -250,11 +290,6 @@ function positionPlayerInfoBoxes() {
   const canvas = document.getElementById("boardCanvas");
   const rect = canvas.getBoundingClientRect();
 
-  console.log("=== Canvas rect ===");
-  console.log("left:", rect.left, "top:", rect.top);
-  console.log("right:", rect.right, "bottom:", rect.bottom);
-  console.log("width:", rect.width, "height:", rect.height);
-
   // 左上
   const tl = document.getElementById("playerInfoTopLeft");
   const tlH = tl.offsetHeight;
@@ -262,7 +297,6 @@ function positionPlayerInfoBoxes() {
   const tlY = rect.top - tlH;
   tl.style.left = tlX + "px";
   tl.style.top = tlY + "px";
-  console.log("TopLeft placed at:", tlX, tlY);
 
   // 右上
   const tr = document.getElementById("playerInfoTopRight");
@@ -272,7 +306,6 @@ function positionPlayerInfoBoxes() {
   const trY = rect.top - trH;
   tr.style.left = trX + "px";
   tr.style.top = trY + "px";
-  console.log("TopRight placed at:", trX, trY);
 
   // 右下
   const br = document.getElementById("playerInfoBottomRight");
@@ -281,7 +314,6 @@ function positionPlayerInfoBoxes() {
   const brY = rect.bottom;
   br.style.left = brX + "px";
   br.style.top = brY + "px";
-  console.log("BottomRight placed at:", brX, brY);
 
   // 左下
   const bl = document.getElementById("playerInfoBottomLeft");
@@ -289,7 +321,12 @@ function positionPlayerInfoBoxes() {
   const blY = rect.bottom;
   bl.style.left = blX + "px";
   bl.style.top = blY + "px";
-  console.log("BottomLeft placed at:", blX, blY);
 }
 
-
+function chestIcons(count) {
+  let html = "";
+  for (let i = 0; i < count; i++) {
+    html += `<img src="./src/images/chest_close.png" style="width:20px; height:20px; margin-right:2px;">`;
+  }
+  return html;
+}

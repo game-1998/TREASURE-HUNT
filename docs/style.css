@@ -10,10 +10,14 @@ body {
   margin: 0 auto;
   margin-top: 30px;
   display: grid;
-  grid-template-columns: 20ch 32px; /* ← 全行共通の列幅 */
+  grid-template-columns: 20ch 30px; /* ← 全行共通の列幅 */
   row-gap: 10px;
   justify-content: center;
-  font-size: 17px;
+  font-size: 18px;
+}
+
+.nameInput {
+  font-size: 16px;
 }
 
 .form-row {
@@ -62,11 +66,16 @@ body {
   row-gap: 8px;
 }
 
+.settings-row select {
+  font-size: 15px;
+}
+
 .settings-row label {
   position: relative;
   display: inline-block;
   text-align: center; /* ← ラベル文字は中央揃え */
   padding-right: 12px; /* ← コロンのスペース確保 */
+  font-size: 17px;
 }
 
 .settings-row label::after {
@@ -95,8 +104,8 @@ body {
 }
 
 .currentColorBox {
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border: 2px solid #666;
   cursor: pointer;
   margin: 0 auto;
@@ -156,6 +165,9 @@ body {
 
 #startButton {
   margin-top: 30px;
+  padding-left: 15px;
+  padding-right: 15px;
+  font-size: 16px;
 }
 
 /* --- ゲーム画面 ---*/
@@ -208,6 +220,16 @@ body {
   pointer-events: none;
 }
 
+.playerChestRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.playerChestRow img {
+  margin-top: 4px;
+}
+
 #controls {
   display: flex;
   flex-direction: column;
@@ -254,4 +276,46 @@ body {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+}
+
+/* --- リザルト画面 --- */
+.resultPlayerBox {
+  margin: 20px auto;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.resultPlayerHeader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.resultColorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.resultChests {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.resultChest {
+  width: 90px;
+  height: 90px;
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.resultChest.open {
+  opacity: 1;
+  transform: scale(1);
 }
