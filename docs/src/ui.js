@@ -70,33 +70,54 @@ export function renderResultScreen() {
   area.innerHTML = "";
 
   game.players.forEach((player, i) => {
+
+    // ★ 合計点を計算
+    const totalScore = player.collectedChests.reduce((sum, c) => sum + c.score, 0);
+
     const box = document.createElement("div");
     box.className = "resultPlayerBox";
-    box.dataset.playerIndex = i; // ← どのプレイヤーか識別
+    box.dataset.playerIndex = i;
 
+    // ★ プレイヤー名の横に合計点を表示
     box.innerHTML = `
       <div class="resultPlayerHeader">
-        <span class="resultColorDot" style="background:${player.color};"></span>
-        ${player.name}
+        <div></div> <!-- 左スペース -->
+        <div class="center">
+          <span class="resultColorDot" style="background:${player.color};"></span>
+          ${player.name}
+        </div>
+        <div class="resultTotalScore">（${totalScore}点）</div>
       </div>
       <div class="resultChests" id="resultChests${i}"></div>
     `;
 
-    // タップで開封開始
+    // ★ タップで開封開始
     box.addEventListener("click", () => {
       startChestAnimationForPlayer(i);
     });
 
     area.appendChild(box);
-    
-    // まず閉じた宝箱を並べる
+
+    // ★ リザルト画面に切り替わった瞬間に閉じた宝箱を並べる
     const chestArea = box.querySelector(".resultChests");
     chestArea.innerHTML = "";
-    player.collectedChests.forEach(() => {
+
+    player.collectedChests.forEach((chest) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "chestWithScore";
+
       const img = document.createElement("img");
       img.src = "./src/images/chest_close.png";
       img.className = "resultChest";
-      chestArea.appendChild(img);
+
+      // ★ 点数ラベル（最初は非表示）
+      const label = document.createElement("div");
+      label.className = "chestScoreLabel hidden";
+      label.textContent = `${chest.score}点`;
+
+      wrapper.appendChild(img);
+      wrapper.appendChild(label);
+      chestArea.appendChild(wrapper);
     });
   });
 
@@ -113,12 +134,27 @@ function startChestAnimationForPlayer(playerIndex) {
 
   // 開封アニメ開始
   player.collectedChests.forEach((chest, index) => {
-    const img = chestArea.children[index];
+    const wrapper = chestArea.children[index];
+    const img = wrapper.querySelector("img");
+    const label = wrapper.querySelector(".chestScoreLabel");
+
+    img.style.transition = "transform 0.20s ease-out";
+    img.style.transform = "scale(0.85)";
 
     setTimeout(() => {
       img.src = chestImages[chest.score];
       img.classList.add("open");
-    }, 300 * index);
+
+      label.classList.remove("hidden");
+      label.classList.add("show");
+      label.classList.add("badge");
+
+      // 合計点を表示
+      const total = document.querySelector(
+        `.resultPlayerBox[data-player-index="${playerIndex}"] .resultTotalScore`
+      );
+      total.classList.add("show");
+    }, 200);
   });
 }
 
