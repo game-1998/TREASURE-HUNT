@@ -1,4 +1,4 @@
-import { game } from "./state.js";
+import { game, ColorMap } from "./state.js";
 import { render, updateTurnInfo } from "./ui.js";
 import { endTurn } from "./turn.js";
 
@@ -65,8 +65,8 @@ export function handleBoardClick(x, y) {
     }
 
     const tile = game.board[x][y];
-    const p = game.players[game.currentPlayerId];
-    const playerColor = game.selectedColors[playerId];
+    //const p = game.players[game.currentPlayerId];
+    const playerColor = game.selectedColors[game.currentPlayerId];
     const myColor = ColorMap[playerColor];
 
     if (tile.color && tile.color !== myColor) {

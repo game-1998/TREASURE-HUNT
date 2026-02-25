@@ -1,6 +1,5 @@
 body {
   text-align: center;
-  touch-action: none;
 }
 
 /* --- ホーム画面 --- */
@@ -173,6 +172,7 @@ body {
 /* --- ゲーム画面 ---*/
 #gamescreen {
   overscroll-behavior: none;
+  touch-action: none;
 }
 
 #boardCanvas {
@@ -324,30 +324,32 @@ body {
 }
 
 .resultChests {
+  position: relative;
   display: flex;
   flex-wrap: wrap; /* ← 折り返しを許可 */
   justify-content: center;
-  margin-top: 14px;
+  margin-top: 18px;
   gap: 2dvw;
   max-width: 100dvw; /* ← 4個分の幅に制限（40px × 4 + gap） */
+  min-height: 20dvw;
 }
 
 .resultChest {
   width: 22dvw;
   height: 22dvw;
   opacity: 1;
-  transform: scale(1);
+  transform: scale(0.9);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* 開封アニメ */
 .resultChest.open {
-  animation: chestBounce 0.3s ease-out;
+  animation: chestBounce 0.6s ease-out forwards;
 }
 
 @keyframes chestBounce {
   0%   { transform: scale(0.85); }
-  40%  { transform: scale(1.25); }
+  50%  { transform: scale(1.25); }
   100% { transform: scale(1); }
 }
 
@@ -363,13 +365,13 @@ body {
 
 .chestScoreLabel {
   position: absolute;
-  font-size: 14px;
-  bottom: 19dvw; /* ← 宝箱の上に配置（調整可） */
+  font-size: 12px;
+  bottom: 20dvw; /* ← 宝箱の上に配置（調整可） */
   left: 50%;
   transform: translateX(-50%);
   background: white;
   border-radius: 50%;
-  padding: 1px 8px;
+  padding: 1px 6px;
   font-weight: bold;
   border: 2px solid #333;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -377,7 +379,7 @@ body {
 
 .chestScoreLabel.show {
   display: block;
-  animation: scorePop 0.5s ease-out;
+  animation: scorePop 0.4s ease-out;
 }
 
 @keyframes scorePop {
@@ -390,7 +392,26 @@ body {
   opacity: 0;
 }
 
+.tapToOpen {
+  position: absolute;
+  top: calc(22dvw / 2 - 4dvw);
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 4dvw;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 0 6px rgba(0,0,0,0.6);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 0.4s ease;
+  z-index: 10;
+}
+
+.tapToOpen.hide {
+  opacity: 0;
+}
+
 #restartButton {
   font-size: 14px;
-  margin-top: 10px;
+  margin-top: 20px;
+  margin-bottom: 40px;
 }

@@ -88,18 +88,32 @@ export function renderResultScreen() {
         </div>
         <div class="resultTotalScore">（${totalScore}点）</div>
       </div>
-      <div class="resultChests" id="resultChests${i}"></div>
+      <div class="resultChests" id="resultChests${i}">
+        <div class="tapToOpen">tap to open</div>
+      </div>    
     `;
 
-    // ★ タップで開封開始
+    const totalScoreEl = box.querySelector(".resultTotalScore");
+
+    // 宝箱ゼロのプレイヤーは最初から表示
+    if (player.collectedChests.length === 0) {
+      totalScoreEl.classList.add("show");
+    }
+
+    // タップで開封開始
     box.addEventListener("click", () => {
       startChestAnimationForPlayer(i);
     });
 
     area.appendChild(box);
 
-    // ★ リザルト画面に切り替わった瞬間に閉じた宝箱を並べる
+    // リザルト画面に切り替わった瞬間に閉じた宝箱を並べる
     const chestArea = box.querySelector(".resultChests");
+
+    // tapToOpen を退避（innerHTML="" で消えないようにする）
+    const tap = chestArea.querySelector(".tapToOpen");
+
+    // 宝箱だけ消す（tapToOpen は残す）
     chestArea.innerHTML = "";
 
     player.collectedChests.forEach((chest) => {
@@ -119,6 +133,13 @@ export function renderResultScreen() {
       wrapper.appendChild(label);
       chestArea.appendChild(wrapper);
     });
+
+    chestArea.appendChild(tap);
+
+    if (player.collectedChests.length === 0) {
+      const tap = box.querySelector(".tapToOpen");
+      tap.classList.add("hide");
+    }
   });
 
   document.getElementById("resultScreen").style.display = "block";
@@ -132,29 +153,45 @@ function startChestAnimationForPlayer(playerIndex) {
   if (chestArea.dataset.opened === "true") return;
   chestArea.dataset.opened = "true";
 
+  const box = document.querySelector(
+    `.resultPlayerBox[data-player-index="${playerIndex}"]`
+  );
+  const tap = box.querySelector(".tapToOpen");
+  tap.classList.add("hide");
+
   // 開封アニメ開始
   player.collectedChests.forEach((chest, index) => {
     const wrapper = chestArea.children[index];
     const img = wrapper.querySelector("img");
     const label = wrapper.querySelector(".chestScoreLabel");
 
-    img.style.transition = "transform 0.20s ease-out";
-    img.style.transform = "scale(0.85)";
-
     setTimeout(() => {
-      img.src = chestImages[chest.score];
-      img.classList.add("open");
+      img.style.transition = "transform 0.20s ease-out";
+      img.style.transform = "scale(0.75)";
 
-      label.classList.remove("hidden");
-      label.classList.add("show");
-      label.classList.add("badge");
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          img.src = chestImages[chest.score];
 
-      // 合計点を表示
-      const total = document.querySelector(
-        `.resultPlayerBox[data-player-index="${playerIndex}"] .resultTotalScore`
-      );
-      total.classList.add("show");
-    }, 200);
+          img.onload = () => {
+            requestAnimationFrame(() => {
+              img.classList.add("open");
+
+              label.classList.remove("hidden");
+              label.classList.add("show");
+
+              // 合計点を表示
+              if (index === player.collectedChests.length - 1) {
+                const total = document.querySelector(
+                  `.resultPlayerBox[data-player-index="${playerIndex}"] .resultTotalScore`
+                );
+                total.classList.add("show");
+              }
+            });
+          };
+        });
+      }, 200);
+    }, index * 850);
   });
 }
 
