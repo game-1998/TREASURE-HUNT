@@ -148,6 +148,7 @@ export function movePlayer(dx, dy) {
 
   // 残り宝箱が0ならゲーム終了
   if (game.remainingTreasures === 0) {
+    game.locked = true;
     setTimeout(() => endGame(), 3500);
     return; // これ以上処理しない
   }

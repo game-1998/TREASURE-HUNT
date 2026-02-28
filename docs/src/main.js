@@ -147,6 +147,7 @@ document.addEventListener("DOMContentLoaded", () => {
       game.playerNames.push(name);
     }
 
+    document.body.style.overflow = "hidden";   // ← pull-to-refresh を封じる
     initializeGame();
     startGame();
     showScreen("gameScreen");
@@ -171,6 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
   canvas.addEventListener("pointermove", (e) => {
     if (game.mode !== "break") return;
 
+    console.log("move", e.clientX, e.clientY);
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / game.tileSize);
     const y = Math.floor((e.clientY - rect.top) / game.tileSize);

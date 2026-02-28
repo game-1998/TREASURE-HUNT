@@ -4,7 +4,7 @@ import { drawPlayers } from "./player.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
-const chestImages = {
+export const chestImages = {
   1: "./src/images/chest_1p.png",
   2: "./src/images/chest_2p.png",
   3: "./src/images/chest_3p.png",

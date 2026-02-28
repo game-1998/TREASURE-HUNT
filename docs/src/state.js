@@ -1,6 +1,6 @@
 import { createBoard } from "./boad.js";
 import { createPlayers } from "./player.js";
-import { updateTreasureInfo, showScreen } from "./ui.js";
+import { updateTreasureInfo, chestImages } from "./ui.js";
 
 export const game = {
   boardSize: 7,
@@ -37,6 +37,8 @@ export function initializeGame() {
   placeTreasures();
   updateTreasureInfo();
   setupCanvas(game.boardSize);
+  preloadChestImages();
+  game.locked = false;
 
   // 初期位置を塗る
   for (const p of game.players) {
@@ -118,4 +120,12 @@ function getRandomTreasureScore() {
     }
     r -= t.weight;
   }
+}
+
+// ゲーム開始時に実行
+function preloadChestImages() {
+  Object.values(chestImages).forEach(src => {
+    const img = new Image();
+    img.src = src;
+  });
 }

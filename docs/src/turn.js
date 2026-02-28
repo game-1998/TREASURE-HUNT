@@ -20,6 +20,7 @@ export function startTurn() {
 
 export function endTurn() {
   game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
+  game.locked = true;
   startTurn();
   if (!game.animation) {
     showTurnChange(game.players[game.currentPlayerId].name);
@@ -32,6 +33,7 @@ export function endTurn() {
 }
 
 export function endGame() {
+  document.body.style.overflow = "";
   alert("宝箱をすべて回収しました！ゲーム終了！");
   // 必要なら画面遷移など
   showScreen("resultScreen");
@@ -39,7 +41,6 @@ export function endGame() {
 }
 
 export function showTurnChange(name) {
-  game.locked = true;
   const overlay = document.getElementById("turnOverlay");
   const dimmer = document.getElementById("turnDimmer");
 

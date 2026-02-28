@@ -1,27 +1,27 @@
 body {
   text-align: center;
+  overflow-y: auto;
 }
 
-/* --- ホーム画面 --- */
-#playerNameContainer {
-  width: 70dvw;
-  max-width: 500px;
-  margin: 0 auto;
-  margin-top: 30px;
-  display: grid;
-  grid-template-columns: 20ch 30px; /* ← 全行共通の列幅 */
-  row-gap: 10px;
-  justify-content: center;
-  font-size: 18px;
+/* --- ホーム画面 --------------------------------------------------------- */
+h1 {
+  font-size: 8dvw;
+  font-weight: 900;
+  color: #ffee00;
+  text-shadow: 0 0 8px rgba(0,0,0,0.7);
+  animation: titlePulse 2.4s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
 
-.nameInput {
-  font-size: 16px;
+@keyframes titlePulse {
+  0%   { transform: scale(0.95); }
+  50%  { transform: scale(1.05); }
+  100% { transform: scale(0.95); }
 }
 
 .form-row {
   justify-content: center;
-  margin-bottom: 10px;
+  margin-top: 40px;
+  margin-bottom: 35px;
 }
 
 .form-row input[type="text"] {
@@ -83,6 +83,22 @@ body {
   right: -7px;           /* ← コロンを右端に固定 */
   top: 50%;
   transform: translateY(-50%);
+}
+
+#playerNameContainer {
+  width: 70dvw;
+  max-width: 500px;
+  margin: 0 auto;
+  margin-top: 30px;
+  display: grid;
+  grid-template-columns: 20ch 30px; /* ← 全行共通の列幅 */
+  row-gap: 10px;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.nameInput {
+  font-size: 16px;
 }
 
 .colorSelectArea {
@@ -169,10 +185,10 @@ body {
   font-size: 16px;
 }
 
-/* --- ゲーム画面 ---*/
+/* --- ゲーム画面 -----------------------------------------------------------*/
 #gamescreen {
+  overflow: hidden; /* ← スクロール不能にする */
   overscroll-behavior: none;
-  touch-action: none;
 }
 
 #boardCanvas {
@@ -181,6 +197,7 @@ body {
   display: block;
   margin-top: 40px;
   margin-bottom: 30px;
+  touch-action: none;
 }
 
 #turnInfo, #treasureInfo {
@@ -278,7 +295,7 @@ body {
   transition: opacity 0.3s ease;
 }
 
-/* --- リザルト画面 --- */
+/* --- リザルト画面 ---------------------------------------------------------- */
 .resultPlayerBox {
   margin: 25px auto;
   font-size: 20px;
@@ -397,13 +414,23 @@ body {
   top: calc(22dvw / 2 - 4dvw);
   left: 50%;
   transform: translateX(-50%);
-  font-size: 4dvw;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 0 6px rgba(0,0,0,0.6);
+  font-size: 18px;
+  color: #ffe9a3;
+  -webkit-text-stroke: 1px rgba(0,0,0,0.85);
+  text-shadow:
+    0 0 6px rgba(0,0,0,0.7),
+    0 0 12px rgba(0,0,0,0.5);
   pointer-events: none;
   opacity: 1;
   transition: opacity 0.4s ease;
   z-index: 10;
+  animation: tapScale 2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+@keyframes tapScale {
+  0%   { transform: translateX(-50%) scale(0.97); }
+  50%  { transform: translateX(-50%) scale(1.05); }
+  100% { transform: translateX(-50%) scale(0.97); }
 }
 
 .tapToOpen.hide {
