@@ -369,6 +369,7 @@ export function renderPlayerInfo() {
 
   // HTML が入って高さが決まった後に位置を決める
   positionPlayerInfoBoxes();
+  attachSkillTooltipEvents();
 }
 
 
@@ -493,7 +494,13 @@ export function runSkillRouletteAnimation() {
 }
 
 function getskillIcon(type) {
-  return `<img class="skillIcon" src="./src/images/${type}.svg">`
+  const label = SkillMap[type]; // 表示したい日本語名に変換するならここで
+  return `
+    <div class="skillIcon">
+      <img src="./src/images/${type}.svg">
+      <div class="nameBubble">${label}</div>
+    </div>
+  `;
 }
 
 function createRanking() {
@@ -542,4 +549,37 @@ function showRanking() {
   });
 
   document.getElementById("rankingOverlay").style.display = "flex";
+}
+
+function attachSkillTooltipEvents() {
+  document.querySelectorAll(".skillIcon").forEach(icon => {
+    icon.addEventListener("click", () => {
+      const bubble = icon.querySelector(".nameBubble");
+      if (!bubble) return;
+
+      const rect = icon.getBoundingClientRect();
+      const screenMidX = window.innerWidth / 2;
+      const screenMidY = window.innerHeight / 2;
+
+      // 画面の上下・左右にあるアイコンを識別
+      if (rect.left > screenMidX) {
+        bubble.classList.add("right");
+      } else {
+        bubble.classList.remove("right");
+      }
+
+      if (rect.top > screenMidY) {
+        bubble.classList.add("bottom");
+      } else {
+        bubble.classList.remove("bottom");
+      }
+
+      bubble.style.opacity = 1;
+
+      clearTimeout(bubble.hideTimer);
+      bubble.hideTimer = setTimeout(() => {
+        bubble.style.opacity = 0;
+      }, 2000);
+    });
+  });
 }

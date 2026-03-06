@@ -1,6 +1,7 @@
-body {
+html, body {
+  overflow: hidden;
+  overscroll-behavior: none;
   text-align: center;
-  overflow-y: auto;
 }
 
 /* --- ホーム画面 --------------------------------------------------------- */
@@ -19,9 +20,10 @@ h1 {
 }
 
 .form-row {
+  display: contents;
+  align-items: center;
+  column-gap: 20px;
   justify-content: center;
-  margin-top: 40px;
-  margin-bottom: 35px;
 }
 
 .form-row input[type="text"] {
@@ -34,13 +36,6 @@ h1 {
 .headerRow {
   font-weight: bold;
   margin-bottom: 6px;
-}
-
-.form-row,
-.headerRow {
-  display: contents;
-  align-items: center;
-  column-gap: 20px;
 }
 
 .headerCellPlayername,
@@ -63,6 +58,8 @@ h1 {
   justify-content: center;
   column-gap: 12px;
   row-gap: 8px;
+  margin-top: 45px;
+  margin-bottom: 35px;
 }
 
 .settings-row select {
@@ -89,10 +86,9 @@ h1 {
   width: 70dvw;
   max-width: 500px;
   margin: 0 auto;
-  margin-top: 30px;
   display: grid;
   grid-template-columns: 20ch 30px; /* ← 全行共通の列幅 */
-  row-gap: 10px;
+  row-gap: 15px;
   justify-content: center;
   font-size: 18px;
 }
@@ -301,7 +297,6 @@ h2 {
   width: 180px;
   font-size: 16px;
   font-weight: bold;
-  pointer-events: none;
 }
 
 .playerSkillRow {
@@ -312,28 +307,57 @@ h2 {
 }
 
 .skillIcon {
+  position: relative;
   width: 28px;
   height: 28px;
 }
 
-/* ゲーム画面での吹き出しに使用 */
-.tooltip {
+/* 共通スタイル（最初は非表示） */
+.nameBubble {
   position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: calc(100% + 6px);       /* デフォルトは“上に出す” */
+  left: -6px;
   background: rgba(0,0,0,0.85);
   color: white;
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
   white-space: nowrap;
-  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.skillIconWrapper:active .tooltip,
-.skillIconWrapper:hover .tooltip {
-  display: block;
+/* 吹き出しの三角形（上向き） */
+.nameBubble::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 14px;
+  border-width: 6px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.85) transparent transparent transparent;
+}
+
+/* 下向きに出すとき用（CANVAS の上側にあるアイコン用） */
+.nameBubble.bottom {
+  top: calc(100% + 6px);
+  bottom: auto;
+}
+
+.nameBubble.bottom::after {
+  top: auto;
+  bottom: 100%;
+  border-color: transparent transparent rgba(0,0,0,0.85) transparent;
+}
+
+.nameBubble.right {
+  left: auto;
+  right: -6px;
+}
+
+.nameBubble.right::after {
+  left: auto;
+  right: 14px;
 }
 
 .playerChestRow {
@@ -399,6 +423,11 @@ h2 {
 }
 
 /* --- リザルト画面 ---------------------------------------------------------- */
+#resultscreen {
+  overscroll-behavior: contain; /* ← プルダウン更新を止める */
+  overflow-y: auto;             /* ← スクロールは許可 */
+}
+
 .resultPlayerBox {
   margin: 25px auto;
   font-size: 20px;
