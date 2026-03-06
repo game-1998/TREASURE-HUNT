@@ -4,12 +4,12 @@ import { game } from "./state.js";
 export function startGame() {
   game.currentPlayerId = 0;
   game.remainingActions = 2;
-  game.phase = "playing";
 
   startTurn();
   render();
   requestAnimationFrame(() => {
     renderPlayerInfo();
+    showTurnChange(game.players[game.currentPlayerId].name);
   });
 }
 
@@ -44,7 +44,7 @@ export function showTurnChange(name) {
   const overlay = document.getElementById("turnOverlay");
   const dimmer = document.getElementById("turnDimmer");
 
-  overlay.textContent = `${name}　のターン！`;
+  overlay.innerHTML = `NEXT PLAYER<br>${name}`;
 
   // 暗転
   dimmer.style.opacity = 1;
@@ -59,5 +59,5 @@ export function showTurnChange(name) {
     overlay.style.opacity = 0;
     dimmer.style.opacity = 0;
     game.locked = false;
-  }, 1700);
+  }, 2300);
 }

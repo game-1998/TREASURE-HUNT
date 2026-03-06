@@ -4,13 +4,13 @@ import { updateTreasureInfo, chestImages } from "./ui.js";
 
 export const game = {
   boardSize: 7,
+  treasureCount,
   board: [],
   players: [],
   treasures: [],
   remainingTreasures: 3,
   currentPlayerId: 0,
   remainingActions: 2,
-  phase: "start",
   tileSize: 0,
   mode: "normal",
   highlight: null,
@@ -27,6 +27,13 @@ export const ColorMap = {
   "#c24e9b": "#eba0d3",
   "#00C8FF": "#a8f0ff", // 水色 → 緑寄り水色（青と差が出る）
 };
+
+export const SkillMap = {
+  warp: "ワープ",
+  clearBoard: "オールクリア",
+  paintRandom: "ランダム・ペイント",
+  randomMove: "ランダム・ムーブ"
+}
 
 export const colorList = Object.keys(ColorMap);
 
@@ -128,4 +135,18 @@ function preloadChestImages() {
     const img = new Image();
     img.src = src;
   });
+}
+
+export function assignRandomAbilities() {
+  const abilities = ["warp", "clearBoard", "paintRandom", "randomMove"];
+
+  for (const p of game.players) {
+    const r = Math.floor(Math.random() * abilities.length);
+    p.specialType = abilities[r];
+    p.specialUsed = false;
+  }
+}
+
+export function allPlayersOpened() {
+  return game.players.every(p => p.openedTreasure === true);
 }

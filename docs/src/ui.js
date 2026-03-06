@@ -1,4 +1,4 @@
-import { game } from "./state.js";
+import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
 import { drawPlayers } from "./player.js";
 
@@ -14,6 +14,7 @@ export const chestImages = {
 
 export function showScreen(name) {
   document.getElementById("homeScreen").style.display = "none";
+  document.getElementById("skillScreen").style.display = "none";
   document.getElementById("gameScreen").style.display = "none";
   document.getElementById("resultScreen").style.display = "none";
 
@@ -48,7 +49,7 @@ export function updateTreasureInfo() {
   grid.id = "treasureGrid";
   container.appendChild(grid);
 
-  const max = 10;
+  const max = game.treasureCount;
   const count = game.remainingTreasures;
 
   for (let i = 0; i < max; i++) {
@@ -70,10 +71,6 @@ export function renderResultScreen() {
   area.innerHTML = "";
 
   game.players.forEach((player, i) => {
-
-    // ★ 合計点を計算
-    const totalScore = player.collectedChests.reduce((sum, c) => sum + c.score, 0);
-
     const box = document.createElement("div");
     box.className = "resultPlayerBox";
     box.dataset.playerIndex = i;
@@ -86,7 +83,7 @@ export function renderResultScreen() {
           <span class="resultColorDot" style="background:${player.color};"></span>
           ${player.name}
         </div>
-        <div class="resultTotalScore">（${totalScore}点）</div>
+        <div class="resultTotalScore">（${player.score}点）</div>
       </div>
       <div class="resultChests" id="resultChests${i}">
         <div class="tapToOpen">tap to open</div>
@@ -98,6 +95,7 @@ export function renderResultScreen() {
     // 宝箱ゼロのプレイヤーは最初から表示
     if (player.collectedChests.length === 0) {
       totalScoreEl.classList.add("show");
+      player.openedTreasure = true;
     }
 
     // タップで開封開始
@@ -185,7 +183,14 @@ function startChestAnimationForPlayer(playerIndex) {
                 const total = document.querySelector(
                   `.resultPlayerBox[data-player-index="${playerIndex}"] .resultTotalScore`
                 );
+                player.openedTreasure = true;
                 total.classList.add("show");
+
+                if (allPlayersOpened()) {
+                  setTimeout(() => {
+                    showRanking();
+                  }, 1500);
+                }
               }
             });
           };
@@ -333,9 +338,13 @@ export function renderPlayerInfo() {
           gap:6px;
           justify-content:flex-end;
         ">
+          <div class="playerSkillRow" style="justify-content:flex-end;">
+            ${p.specialUsed ? "" : getskillIcon(p.specialType)}
+          </div>
           <span style="text-align:right;">${p.name}</span>
           <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
-          </div>
+        </div>
+
           <div class="playerChestRow" style="justify-content:flex-end;">
             ${chestIcons(p.collectedChests.length)} :宝箱
           </div>
@@ -346,7 +355,11 @@ export function renderPlayerInfo() {
         <div style="display:flex; align-items:center; gap:6px;">
           <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
           <span>${p.name}</span>
+          <div class="playerSkillRow" style="justify-content:flex-start;">
+            ${p.specialUsed ? "" : getskillIcon(p.specialType)}
+          </div>
         </div>
+        
         <div class="playerChestRow" style="justify-content:flex-start;">
           宝箱: ${chestIcons(p.collectedChests.length)}
         </div>
@@ -367,7 +380,7 @@ function positionPlayerInfoBoxes() {
   const tl = document.getElementById("playerInfoTopLeft");
   const tlH = tl.offsetHeight;
   const tlX = rect.left;
-  const tlY = rect.top - tlH;
+  const tlY = rect.top - tlH - 3;
   tl.style.left = tlX + "px";
   tl.style.top = tlY + "px";
 
@@ -376,7 +389,7 @@ function positionPlayerInfoBoxes() {
   const trW = tr.offsetWidth;
   const trH = tr.offsetHeight;
   const trX = rect.right - trW;
-  const trY = rect.top - trH;
+  const trY = rect.top - trH - 3;
   tr.style.left = trX + "px";
   tr.style.top = trY + "px";
 
@@ -384,14 +397,14 @@ function positionPlayerInfoBoxes() {
   const br = document.getElementById("playerInfoBottomRight");
   const brW = br.offsetWidth;
   const brX = rect.right - brW;
-  const brY = rect.bottom;
+  const brY = rect.bottom + 6;
   br.style.left = brX + "px";
   br.style.top = brY + "px";
 
   // 左下
   const bl = document.getElementById("playerInfoBottomLeft");
   const blX = rect.left;
-  const blY = rect.bottom;
+  const blY = rect.bottom + 6;
   bl.style.left = blX + "px";
   bl.style.top = blY + "px";
 }
@@ -402,4 +415,131 @@ function chestIcons(count) {
     html += `<img src="./src/images/chest_close.png" style="width:20px; height:20px; margin-right:2px;">`;
   }
   return html;
+}
+
+export function runSkillRouletteAnimation() {
+  const btn = document.getElementById("skillConfirmBtn");
+  btn.disabled = true;
+  btn.textContent = "抽選中…";
+
+  const abilities = ["warp", "clearBoard", "paintRandom", "randomMove"];
+  const slots = document.getElementById("skillSlots");
+  slots.innerHTML = "";
+
+  // スロットを作る
+  for (let i = 0; i < game.players.length; i++) {
+    const p = game.players[i];
+
+    const div = document.createElement("div");
+    div.className = "slot";
+
+    div.innerHTML = `
+      <div class="slotPlayer">
+        <div class="playerNameWrapper">
+          <div class="playerColor" style="background:${p.color}"></div>
+          <span class="playerName">${p.name}</span>
+        </div>
+
+        <div class="skillIconWrapper">
+          <img class="skillIconSelect" src="./src/images/uncertainty.svg">
+          <span class="skillLabel">???</span>
+        </div>
+      </div>
+    `;
+
+    slots.appendChild(div);
+  }
+
+  // 演出：1人ずつ止まる
+  let index = 0;
+
+  function spinNext() {
+    if (index >= game.players.length) {
+      // ★ 全員決定したのでボタンを有効化
+      btn.disabled = false;
+      btn.textContent = "OK!";
+      return;
+    }
+
+    const slot = slots.children[index];
+    const skillIcon = slot.querySelector(".skillIconSelect");
+    const skillLabel = slot.querySelector(".skillLabel");
+
+    let t = 0;
+
+    const interval = setInterval(() => {
+      const r = Math.floor(Math.random() * abilities.length);
+      skillIcon.src = `./src/images/${abilities[r]}.svg`;
+      skillLabel.textContent = SkillMap[abilities[r]];
+      t++;
+
+      if (t > 20 + Math.random() * 20) {
+        clearInterval(interval);
+
+        // 最終決定
+        const final = Math.floor(Math.random() * abilities.length);
+        skillIcon.src = `./src/images/${abilities[final]}.svg`;
+        skillLabel.textContent = SkillMap[abilities[final]];
+        game.players[index].specialType = abilities[final];
+        game.players[index].specialUsed = false;
+
+        index++;
+        setTimeout(spinNext, 300);
+      }
+    }, 50);
+  }
+
+  spinNext();
+}
+
+function getskillIcon(type) {
+  return `<img class="skillIcon" src="./src/images/${type}.svg">`
+}
+
+function createRanking() {
+  const sorted = [...game.players].sort((a, b) => b.score - a.score);
+
+  let lastScore = null;
+  let lastRank = 0;
+  let index = 0;
+
+  return sorted.map(p => {
+    index++;
+    if (p.score !== lastScore) {
+      lastRank = index;
+      lastScore = p.score;
+    }
+    return { rank: lastRank, name: p.name, score: p.score };
+  });
+}
+
+function showRanking() {
+  const ranking = createRanking(); // スコア順＋同着処理済み
+  const panel = document.getElementById("ranking");
+  panel.innerHTML = "";
+
+  ranking.forEach(r => {
+    const row = document.createElement("div");
+    row.className = "rankRow";
+
+    // 順位
+    const rankCell = document.createElement("div");
+    rankCell.textContent = `${r.rank}位`;
+
+    // 名前
+    const nameCell = document.createElement("div");
+    nameCell.textContent = r.name;
+
+    // スコア
+    const scoreCell = document.createElement("div");
+    scoreCell.textContent = `${r.score}点`;
+
+    row.appendChild(rankCell);
+    row.appendChild(nameCell);
+    row.appendChild(scoreCell);
+
+    panel.appendChild(row);
+  });
+
+  document.getElementById("rankingOverlay").style.display = "flex";
 }

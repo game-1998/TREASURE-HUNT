@@ -1,7 +1,7 @@
-import { showScreen, render } from "./ui.js";
+import { showScreen, render, runSkillRouletteAnimation } from "./ui.js";
 import { startGame } from "./turn.js";
 import { game, initializeGame } from "./state.js";
-import {movePlayer} from "./player.js"
+import {movePlayer, warp, clearBoardAbility, paintRandomAbility, getPlayerAt, randomMoveAbility } from "./player.js"
 import { handleBoardClick } from "./boad.js";
 import { colorList } from "./state.js";
 
@@ -132,14 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
     game.boardSize = Number(boardSizeSelect.value);
     game.treasureCount = Number(treasureSelect.value);
 
-    // ボードサイズを保存
-    const size = Number(document.getElementById("boardSize").value);
-    game.boardSize = size;
-
-    // ★ 宝箱数を保存
-    const treasureCount = Number(document.getElementById("treasureCount").value);
-    game.treasureCount = treasureCount;
-
     // 名前を state に保存
     game.playerNames = [];
     for (let i = 0; i < count; i++) {
@@ -149,12 +141,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.body.style.overflow = "hidden";   // ← pull-to-refresh を封じる
     initializeGame();
+    showScreen("skillScreen");
+    runSkillRouletteAnimation();
+  };
+
+  document.getElementById("skillConfirmBtn").onclick = () => {
     startGame();
     showScreen("gameScreen");
-  };
+  }
 
   document.getElementById("restartButton").onclick = () => {
     showScreen("homeScreen");
+    document.getElementById("rankingOverlay").style.display = "none";
+
   };
 
   document.getElementById("btnUp").onclick = () => movePlayer(0, -1);
@@ -164,15 +163,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("breakButton").onclick = () => {
     if (game.locked) return;
-    game.mode = "break";
+    if (confirm("ブレイクを使用しますか？")) {
+      game.mode = "break";
+    }
   };
+
+  specialBtn.onclick = () => {
+    if (game.locked) return;
+
+    const p = game.players[game.currentPlayerId];
+    if (p.specialUsed) return;
+
+    switch (p.specialType) {
+      case "warp":
+        if (confirm("ワープを使用しますか？")) {
+          game.mode = "warpSelect";
+        }
+        break;
+
+      case "clearBoard":
+        if (confirm("オールクリアを使用しますか？")) {
+          clearBoardAbility();
+        }
+        break;
+
+      case "paintRandom":
+        if (confirm("ランダム・ペイントを使用しますか？")) {
+          paintRandomAbility();
+        }
+        break;
+
+      case "randomMove":
+        if (confirm("ランダム・ムーブを使用しますか？")) {
+          game.mode = "randomMoveSelect"; // ← 対象プレイヤー選択へ
+        }
+        break;
+    }
+  };
+
+
 
   const canvas = document.getElementById("boardCanvas");
 
   canvas.addEventListener("pointermove", (e) => {
-    if (game.mode !== "break") return;
+    if (game.mode == "normal") return;
 
-    console.log("move", e.clientX, e.clientY);
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / game.tileSize);
     const y = Math.floor((e.clientY - rect.top) / game.tileSize);
@@ -185,11 +220,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // プレイヤーがいるマスはハイライトしない
-    for (const p of game.players) {
-      if (p.x === x && p.y === y) {
-        game.highlight = null;
-        render();
-        return;
+    if (game.mode == "break" || game.mode === "warpSelect") {
+      for (const p of game.players) {
+        if (p.x === x && p.y === y) {
+          game.highlight = null;
+          render();
+          return;
+        }
       }
     }
 
@@ -199,13 +236,27 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   canvas.addEventListener("pointerup", (e) => {
-    if (game.mode !== "break") return;
+    if (game.mode == "normal") return;
 
     const rect = canvas.getBoundingClientRect();
     const x = Math.floor((e.clientX - rect.left) / game.tileSize);
     const y = Math.floor((e.clientY - rect.top) / game.tileSize);
 
-    handleBoardClick(x, y);
+    if (game.mode == "break") {
+      handleBoardClick(x, y);
+    }
+
+    if (game.mode === "warpSelect") {
+      warp(x, y);
+    }
+
+    if (game.mode === "randomMoveSelect") {
+      const targetId = getPlayerAt(x, y); // そのマスにいるプレイヤーIDを取得
+      if (targetId !== null) {
+        randomMoveAbility(targetId);
+      }
+      return;
+    }
   });
 
 });

@@ -37,6 +37,13 @@
     <button id="startButton">ゲーム開始</button>
   </div>
 
+  <!-- スキル抽出画面 -->
+  <div id="skillScreen" style="display:none;">
+    <h2>プレイヤースキル</h2>
+    <div id="skillSlots"></div>
+    <button id="skillConfirmBtn"></button>
+  </div>
+
   <!-- ゲーム画面 -->
   <div id="gameScreen" style="display:none;">
     <div id="turnInfo"></div>
@@ -58,19 +65,27 @@
         <button id="btnLeft">←</button>
         <button id="btnRight">→</button>
       </div>
-      <button id="btnDown">↓</button>
+      <div>
+        <button id="breakButton">ブレイク</button>
+        <button id="btnDown">↓</button>
+        <button id="specialBtn">スキル</button>
+      </div>
     </div>
-    <button id="breakButton">ブレイク</button>
-
+    
   </div>
 
   <!-- リザルト画面 -->
   <div id="resultScreen" style="display:none;">
     <h2>結果発表</h2>
     <div id="resultArea"></div>
-    <button id="restartButton">もう一度遊ぶ</button>
+    <div id="rankingOverlay">
+      <div id="rankingPanel">
+        <div id="ranking"></div>
+        <button id="restartButton">もう一度遊ぶ</button>
+      </div>
+    </div>    
   </div>
 
-  <script type="module" src="src/main.js?v=20240228"></script>
+  <script type="module" src="src/main.js?v=20260305"></script>
 </body>
 </html>

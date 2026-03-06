@@ -185,6 +185,73 @@ h1 {
   font-size: 16px;
 }
 
+/* --- スキル抽出画面 -----------------------------------------------------------*/
+#skillScreen {
+  height: 100vh;
+  overflow: hidden;
+}
+
+h2 {
+  margin: 30px;
+}
+
+#skillSlots {
+  width: 100%;
+}
+
+.slotPlayer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-left: 15px;
+  margin-top: 20px;
+  gap: 5px;
+  width: 100%;
+}
+
+.playerNameWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 14em;
+  text-align: left;
+  font-size: 18px;
+}
+
+.playerColor {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+}
+
+.skillIconWrapper {
+  display: flex;
+  width: 12em;
+  font-size: 18px;
+  align-items: center;
+  gap: 6px;
+}
+
+.skillIconSelect {
+  width: 40px;
+  height: 40px;
+}
+
+.skillLabel {
+  font-size: 18px;
+}
+
+#skillConfirmBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  width: 80px;
+  height: 26px;
+  margin: 35px auto;
+}
+
 /* --- ゲーム画面 -----------------------------------------------------------*/
 #gamescreen {
   overflow: hidden; /* ← スクロール不能にする */
@@ -195,7 +262,7 @@ h1 {
   width: 100%;
   height: auto;
   display: block;
-  margin-top: 40px;
+  margin-top: 70px;
   margin-bottom: 30px;
   touch-action: none;
 }
@@ -215,12 +282,12 @@ h1 {
 #treasureGrid {
   display: grid;
   grid-template-columns: repeat(5, 1em);
-  grid-template-rows: repeat(2, 1em);
+  grid-auto-rows: 1em; /* 2行目は必要なときだけ生成 */
   gap: 10px;
 }
 
 #treasureGrid img {
-  height: 1.5em;
+  height: 1.7em;
   width: auto;
 }
 
@@ -235,6 +302,38 @@ h1 {
   font-size: 16px;
   font-weight: bold;
   pointer-events: none;
+}
+
+.playerSkillRow {
+  width: 28px;
+  height: 28px;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+.skillIcon {
+  width: 28px;
+  height: 28px;
+}
+
+/* ゲーム画面での吹き出しに使用 */
+.tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: white;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  display: none;
+}
+
+.skillIconWrapper:active .tooltip,
+.skillIconWrapper:hover .tooltip {
+  display: block;
 }
 
 .playerChestRow {
@@ -266,8 +365,12 @@ h1 {
   height: 40px;
 }
 
-#breakButton {
+#controls #breakButton,
+#controls #specialBtn {
+  width: 100px;
   margin-top: 20px;
+  margin-right: 6px;
+  margin-left: 6px;
   font-size: 18px;
 }
 
@@ -437,8 +540,56 @@ h1 {
   opacity: 0;
 }
 
+#rankingOverlay {
+  overflow: hidden; /* ← スクロール不能にする */
+  overscroll-behavior: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+#rankingPanel {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 60%;
+  align-items: center;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rankRow {
+  display: grid;
+  grid-template-columns: 2em 6em 3em;
+  gap: 1em;
+  white-space: nowrap;
+  margin-bottom: 4px;
+}
+
+.rankRow > div {
+  text-align: left;
+  white-space: nowrap;
+  overflow: auto;
+}
+
+.rankRow > div::-webkit-scrollbar {
+  display: none;
+}
+
 #restartButton {
   font-size: 14px;
-  margin-top: 20px;
-  margin-bottom: 40px;
+  margin-top: 16px;
 }

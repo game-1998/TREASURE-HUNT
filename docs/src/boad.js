@@ -65,8 +65,7 @@ export function handleBoardClick(x, y) {
     }
 
     const tile = game.board[x][y];
-    //const p = game.players[game.currentPlayerId];
-    const playerColor = game.selectedColors[game.currentPlayerId];
+    const playerColor = game.players[game.currentPlayerId].color;
     const myColor = ColorMap[playerColor];
 
     if (tile.color && tile.color !== myColor) {
@@ -88,6 +87,5 @@ export function handleBoardClick(x, y) {
       return;
     }
   }
-
-  // --- 通常クリック処理（必要なら追加） ---
 }
+
