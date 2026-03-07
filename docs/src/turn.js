@@ -8,6 +8,17 @@ export function startGame() {
   startTurn();
   render();
   requestAnimationFrame(() => {
+    const canvas = document.getElementById("boardCanvas");
+    const overlay = document.getElementById("turnOverlay");
+    const rect = canvas.getBoundingClientRect();
+
+    console.log(rect.width);
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    overlay.style.left = centerX + "px";
+    overlay.style.top = centerY + "px";
+
     renderPlayerInfo();
     showTurnChange(game.players[game.currentPlayerId].name);
   });
@@ -58,6 +69,9 @@ export function showTurnChange(name) {
   setTimeout(() => {
     overlay.style.opacity = 0;
     dimmer.style.opacity = 0;
-    game.locked = false;
   }, 2300);
+
+  setTimeout(() => {
+    game.locked = false;
+  }, 2600);
 }

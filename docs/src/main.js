@@ -1,4 +1,4 @@
-import { showScreen, render, runSkillRouletteAnimation } from "./ui.js";
+import { showScreen, render, runSkillRouletteAnimation, playAllClearEffect } from "./ui.js";
 import { startGame } from "./turn.js";
 import { game, initializeGame } from "./state.js";
 import {movePlayer, warp, clearBoardAbility, paintRandomAbility, getPlayerAt, randomMoveAbility } from "./player.js"
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       case "clearBoard":
         if (confirm("オールクリアを使用しますか？")) {
-          clearBoardAbility();
+          playAllClearEffect();
         }
         break;
 

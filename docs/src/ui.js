@@ -1,6 +1,6 @@
 import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
-import { drawPlayers } from "./player.js";
+import { clearBoardAbility, drawPlayers } from "./player.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
@@ -583,3 +583,41 @@ function attachSkillTooltipEvents() {
     });
   });
 }
+
+export function playAllClearEffect() {
+  game.locked = true;
+  const flash = document.getElementById("clearFlash");
+  const canvas = document.getElementById("boardCanvas");
+  const rect = canvas.getBoundingClientRect();
+
+  // サイズと位置を canvas に合わせる
+  flash.style.width = rect.width + "px";
+  flash.style.height = rect.height + "px";
+  flash.style.left = rect.left + "px";
+  flash.style.top = rect.top + "px";
+
+  // 光を点灯
+  setTimeout(() => {
+    flash.style.opacity = 1;
+    flash.style.setProperty("--r", "100%");
+  }, 300);
+
+  // 光が消えるタイミングで盤面を無色化
+  setTimeout(() => {
+    clearBoardAbility();
+  }, 3000);
+
+  // 少し待ってから光を消す
+  setTimeout(() => {
+    flash.style.transition = "opacity 1s ease-out";
+    flash.style.opacity = 0;
+  }, 3500);
+
+  // 光が消えた後に scale をリセット
+  setTimeout(() => {
+    game.locked = false;
+    flash.style.setProperty("--r", "0%");
+    flash.style.transition = "--r 3s ease-out";
+  }, 4600);
+}
+

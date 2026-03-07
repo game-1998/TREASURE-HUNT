@@ -1,5 +1,6 @@
 import { game, updateGlowStates } from "./state.js";
-import { render, renderPlayerInfo, triggerTreasureAnimation, updateTreasureInfo, updateTurnInfo } from "./ui.js";
+import { playAllClearEffect, render, renderPlayerInfo, triggerTreasureAnimation,
+         updateTreasureInfo, updateTurnInfo } from "./ui.js";
 import { endTurn, endGame } from "./turn.js";
 import { ColorMap } from "./state.js";
 

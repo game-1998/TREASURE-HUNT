@@ -258,7 +258,7 @@ h2 {
   width: 100%;
   height: auto;
   display: block;
-  margin-top: 70px;
+  margin-top: 65px;
   margin-bottom: 30px;
   touch-action: none;
 }
@@ -270,7 +270,7 @@ h2 {
 #treasureInfo {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  justify-items: center;
   width: fit-content;
   margin: 0 auto; /* 初期表示は中央揃え */
 }
@@ -279,11 +279,12 @@ h2 {
   display: grid;
   grid-template-columns: repeat(5, 1em);
   grid-auto-rows: 1em; /* 2行目は必要なときだけ生成 */
-  gap: 10px;
+  column-gap: 12px; /* 横の間隔 */
+  row-gap: 6px;     /* 縦の間隔（例） */
 }
 
 #treasureGrid img {
-  height: 1.7em;
+  height: 30px;
   width: auto;
 }
 
@@ -420,6 +421,27 @@ h2 {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
+}
+
+#clearFlash {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  /* radial-gradient の半径を変えるための変数 */
+  --r: 0%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,1) 0%,
+    rgba(255,255,255,1) var(--r),
+    rgba(255,255,255,0) calc(var(--r) + 20%)
+  );
+  opacity: 0;
+  transition: --r 3s ease-out;
+}
+
+@property --r {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
 }
 
 /* --- リザルト画面 ---------------------------------------------------------- */
