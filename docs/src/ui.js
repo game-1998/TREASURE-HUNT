@@ -1,6 +1,6 @@
 import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
-import { clearBoardAbility, drawPlayers } from "./player.js";
+import { clearBoardAbility, drawPlayers, drawWarpAnimation } from "./player.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
@@ -24,9 +24,17 @@ export function showScreen(name) {
 export function render() {
   drawBoard();
   drawPlayers();
-  if (game.animation) {
+
+  if (game.animationType === "warp") {
+    drawWarpAnimation();
+    requestAnimationFrame(render);
+    return;
+  }
+  
+  if (game.animationType === "treasure") {
     drawTreasureAnimation();
     requestAnimationFrame(render);
+    return;
   }
 }
 
@@ -307,6 +315,11 @@ export function drawTreasureAnimation() {
 
   if (game.animation.progress >= 3.0) {
     game.animation = null;
+    game.animationType = null;
+    if (game.onAnimationEnd) {
+      game.onAnimationEnd();
+      game.onAnimationEnd = null;
+    }
   }
 }
 
@@ -319,7 +332,10 @@ export function renderPlayerInfo() {
   };
 
   // 一旦全部クリア
-  Object.values(boxes).forEach(b => b.innerHTML = "");
+  Object.values(boxes).forEach(b => {
+    b.innerHTML = "";
+    b.classList.remove("pos-top", "pos-bottom", "pos-left", "pos-right");
+  });
 
   // プレイヤー順に4隅へ固定配置（位置は後で決める）
   const order = ["top-left", "bottom-right", "top-right", "bottom-left"];
@@ -327,44 +343,30 @@ export function renderPlayerInfo() {
   game.players.forEach((p, i) => {
     const box = boxes[order[i]];
 
-    const isRightSide = (i === 1 || i === 2); // ★ 右側だけ反転
-
-    if (isRightSide) {
-      // ★ 右側は左右反転レイアウト
-      box.innerHTML = `
-        <div style="
-          display:flex;
-          align-items:center;
-          gap:6px;
-          justify-content:flex-end;
-        ">
-          <div class="playerSkillRow" style="justify-content:flex-end;">
-            ${p.specialUsed ? "" : getskillIcon(p.specialType)}
-          </div>
-          <span style="text-align:right;">${p.name}</span>
-          <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
-        </div>
-
-          <div class="playerChestRow" style="justify-content:flex-end;">
-            ${chestIcons(p.collectedChests.length)} :宝箱
-          </div>
-      `;
-    } else {
-      // ★ 左側は従来の並び
-      box.innerHTML = `
-        <div style="display:flex; align-items:center; gap:6px;">
+    box.innerHTML = `
+      <div class="playerInfoWrapper">
+        <div class="playerInfoRow">
           <div style="width:16px; height:16px; border-radius:50%; background:${p.color};"></div>
           <span>${p.name}</span>
-          <div class="playerSkillRow" style="justify-content:flex-start;">
+          <div class="playerSkillRow">
             ${p.specialUsed ? "" : getskillIcon(p.specialType)}
           </div>
         </div>
-        
-        <div class="playerChestRow" style="justify-content:flex-start;">
-          宝箱: ${chestIcons(p.collectedChests.length)}
+
+        <div class="playerChestRow">
+          <span>宝箱</span>
+          <span>:</span>
+           <div class="chestIcons">
+           ${chestIcons(p.collectedChests.length)}
+          </div>
         </div>
-      `;
-    }
+      </div>
+    `;
+
+    if (i === 0) box.classList.add("pos-top", "pos-left");     // 左上
+    if (i === 1) box.classList.add("pos-bottom", "pos-right"); // 右下
+    if (i === 2) box.classList.add("pos-top", "pos-right");    // 右上
+    if (i === 3) box.classList.add("pos-bottom", "pos-left");  // 左下
   });
 
   // HTML が入って高さが決まった後に位置を決める
@@ -381,7 +383,7 @@ function positionPlayerInfoBoxes() {
   const tl = document.getElementById("playerInfoTopLeft");
   const tlH = tl.offsetHeight;
   const tlX = rect.left;
-  const tlY = rect.top - tlH - 3;
+  const tlY = rect.top - tlH - 4;
   tl.style.left = tlX + "px";
   tl.style.top = tlY + "px";
 
@@ -390,7 +392,7 @@ function positionPlayerInfoBoxes() {
   const trW = tr.offsetWidth;
   const trH = tr.offsetHeight;
   const trX = rect.right - trW;
-  const trY = rect.top - trH - 3;
+  const trY = rect.top - trH - 4;
   tr.style.left = trX + "px";
   tr.style.top = trY + "px";
 
@@ -413,7 +415,7 @@ function positionPlayerInfoBoxes() {
 function chestIcons(count) {
   let html = "";
   for (let i = 0; i < count; i++) {
-    html += `<img src="./src/images/chest_close.png" style="width:20px; height:20px; margin-right:2px;">`;
+    html += `<img src="./src/images/chest_close.png" style="width:20px; height:20px;">`;
   }
   return html;
 }

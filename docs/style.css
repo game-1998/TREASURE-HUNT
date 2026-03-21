@@ -298,6 +298,54 @@ h2 {
   width: 180px;
   font-size: 16px;
   font-weight: bold;
+  justify-content: flex-start;
+  text-align: left;
+}
+
+.playerInfoWrapper {
+  display: flex;
+  flex-direction: column; /* 上→下 */
+}
+
+.playerInfoBox.pos-top .playerInfoWrapper {
+  flex-direction: column-reverse; /* 下→上に反転 */
+}
+
+.playerInfoBox.pos-right .playerChestRow,
+.playerInfoBox.pos-right .playerInfoRow,
+.playerInfoBox.pos-right .chestIcons {
+  flex-direction: row-reverse; /* 左右反転 */
+}
+
+.playerInfoRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playerChestRow {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 1px;
+}
+
+.chestIcons {
+  display: flex;
+  flex-wrap: wrap;          /* 折り返し */
+  flex-direction: row;
+  justify-content: flex-start;
+  align-content: flex-start;
+  column-gap: 2px;
+  width: 100px;
+  margin-top: 3px;
+}
+
+.playerInfoBox.pos-top .chestIcons {
+  flex-wrap: wrap-reverse;
+}
+
+.playerInfoBox.pos-top .playerChestRow {
+  align-items: flex-end;
 }
 
 .playerSkillRow {
@@ -316,8 +364,8 @@ h2 {
 /* 共通スタイル（最初は非表示） */
 .nameBubble {
   position: absolute;
-  bottom: calc(100% + 6px);       /* デフォルトは“上に出す” */
-  left: -6px;
+  top: 0%;
+  left: calc(100% + 6px);
   background: rgba(0,0,0,0.85);
   color: white;
   padding: 4px 8px;
@@ -328,47 +376,37 @@ h2 {
   transition: opacity 0.2s ease;
 }
 
-/* 吹き出しの三角形（上向き） */
+/* 吹き出しの三角形（左向き） */
 .nameBubble::after {
   content: "";
   position: absolute;
-  top: 100%;
-  left: 14px;
+  top: calc(50% - 6px);
+  right: 100%;
   border-width: 6px;
   border-style: solid;
-  border-color: rgba(0,0,0,0.85) transparent transparent transparent;
+  border-color: transparent rgba(0,0,0,0.85) transparent transparent;
 }
 
 /* 下向きに出すとき用（CANVAS の上側にあるアイコン用） */
 .nameBubble.bottom {
-  top: calc(100% + 6px);
-  bottom: auto;
+  top: auto;
+  bottom: 0%;
 }
 
 .nameBubble.bottom::after {
   top: auto;
-  bottom: 100%;
-  border-color: transparent transparent rgba(0,0,0,0.85) transparent;
+  bottom: calc(50% - 6px);
 }
 
 .nameBubble.right {
   left: auto;
-  right: -6px;
+  right: calc(100% + 6px);;
 }
 
 .nameBubble.right::after {
-  left: auto;
-  right: 14px;
-}
-
-.playerChestRow {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.playerChestRow img {
-  margin-top: 4px;
+  left: 100%;
+  right: auto;
+  border-color: transparent transparent transparent rgba(0,0,0,0.85);
 }
 
 #controls {

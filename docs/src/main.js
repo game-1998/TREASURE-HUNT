@@ -170,6 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   specialBtn.onclick = () => {
     if (game.locked) return;
+    if (game.animationType) return;
 
     const p = game.players[game.currentPlayerId];
     if (p.specialUsed) return;
@@ -183,12 +184,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       case "clearBoard":
         if (confirm("オールクリアを使用しますか？")) {
+          game.animationType = "clearBoard";
           playAllClearEffect();
         }
         break;
 
       case "paintRandom":
         if (confirm("ランダム・ペイントを使用しますか？")) {
+          game.animationType = "paintRandom";
           paintRandomAbility();
         }
         break;
@@ -253,12 +256,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (game.mode === "randomMoveSelect") {
       const targetId = getPlayerAt(x, y); // そのマスにいるプレイヤーIDを取得
       if (targetId !== null) {
+        game.animationType = "randomMove"
         randomMoveAbility(targetId);
       }
       return;
     }
   });
 
+  const clearFlash = document.getElementById("clearFlash");
+
+  clearFlash.addEventListener("transitionend", (e) => {
+    if (e.propertyName !== "opacity") return;
+
+    // 演出終了
+    game.animationType = null;
+
+    // 予約があれば実行（1回だけ）
+    if (game.onAnimationEnd) {
+      game.onAnimationEnd();
+      game.onAnimationEnd = null; // ← 実行後すぐに破棄
+    }
+  });
 });
 
 function openColorPalette(playerIndex, anchorElement) {

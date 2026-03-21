@@ -15,17 +15,23 @@ export const game = {
   mode: "normal",
   highlight: null,
   animation: null,
+  animationType: null,
   locked: false
 };
 
+
+window.game=game;
+
+
+
 // 色候補
 export const ColorMap = {
-  "#1A2BFF": "#87a7fd", // 青 → 紫寄りパステル（青と水色の距離を最大化）
-  "#FF7A00": "#fab380", // オレンジ → 赤寄りパステル（黄色と差が出る）
-  "#00A86B": "#b5f5c9", // 緑 → 黄緑寄りパステル（青・水色と差が出る）
-  "#ff0037": "#ff86a0", // マゼンタ → 赤ピンク（暖色の中で独立）
-  "#c24e9b": "#eba0d3",
-  "#00C8FF": "#a8f0ff", // 水色 → 緑寄り水色（青と差が出る）
+  "#1A2BE6": "#87a7fd", // 青 → 紫寄りパステル（青と水色の距離を最大化）
+  "#F07A10": "#fab380", // オレンジ → 赤寄りパステル（黄色と差が出る）
+  "#0f9c64": "#15df8e", // 緑 → 黄緑寄りパステル（青・水色と差が出る）
+  "#E62057": "#ff86a0", // マゼンタ → 赤ピンク（暖色の中で独立）
+  "#db32a8": "#ff94df",
+  "#1aafc9": "#61dff8", // 水色 → 緑寄り水色（青と差が出る）
 };
 
 export const SkillMap = {

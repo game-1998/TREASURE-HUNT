@@ -12,7 +12,6 @@ export function startGame() {
     const overlay = document.getElementById("turnOverlay");
     const rect = canvas.getBoundingClientRect();
 
-    console.log(rect.width);
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
 
@@ -30,17 +29,25 @@ export function startTurn() {
 }
 
 export function endTurn() {
-  game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
   game.locked = true;
-  startTurn();
-  if (!game.animation) {
-    showTurnChange(game.players[game.currentPlayerId].name);
-  } else {
-    setTimeout(() => {
-      showTurnChange(game.players[game.currentPlayerId].name);
-  }, 3000);
+
+  // 演出中なら、演出終了後にもう一度 endTurn を呼ぶ
+  if (game.animationType === "clearBoard" || game.animationType === "treasure" || game.animationType === "warp") {
+    game.onAnimationEnd = () => {
+      setTimeout(() => {
+        endTurn();
+      }, 200); // ← 余韻の時間
+    };
+    return;
   }
+
+  // ここから先は演出が終わっている前提
+  game.animation = null; // リセット
+
+  game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
   
+  startTurn();
+  showTurnChange(game.players[game.currentPlayerId].name);
 }
 
 export function endGame() {
