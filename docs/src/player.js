@@ -268,24 +268,37 @@ export function drawWarpAnimation() {
   // radius はすでに計算済みなので、それを使う
   const particleSize = minSize + (maxSize - minSize) * (radius / radiusMax);
 
-  let Alpha;
+  let particleAlpha, pieceAlpha;
 
   if (anim.phase === "out") {
     if (progress < spiralTime + 0.1) {
       // 吸い込み中：濃いまま
-      Alpha = 1;
+      particleAlpha = 1;
+      pieceAlpha = 1;
     } else {
       // 弾けた後：だんだん透明になる
       const fadeT = ((progress - spiralTime) / (1 - spiralTime)) ** 2; // 0→1
-      Alpha = 1 - fadeT;           // 1→0
+      particleAlpha = 1 - fadeT;           // 1→0
+      pieceAlpha = 1 - fadeT;
     }
   } else {
     // IN は今まで通り（逆再生）
-    Alpha = progress;
+    pieceAlpha = progress;
+    particleAlpha = progress / 0.9;
+    if (progress > 0.9) {
+      particleAlpha = (1 - progress) /0.1;
+    }
   }
 
-  const coreColor = `rgba(255,255,255,${Alpha})`;
+  const coreColor = `rgba(255,255,255,${particleAlpha})`;
 
+  // -----------------------------
+  // 5. コマ本体の描画（グリッチ＋フェード）
+  // -----------------------------
+  ctx.save();
+  ctx.globalAlpha = pieceAlpha;
+  drawSinglePlayer(ctx, piece);
+  
   // -----------------------------
   // 4. パーティクル描画
   // -----------------------------
@@ -320,12 +333,7 @@ export function drawWarpAnimation() {
     drawRoundedShuriken(ctx, px, py, particleSize, rotation, coreColor);
   }
 
-  // -----------------------------
-  // 5. コマ本体の描画（グリッチ＋フェード）
-  // -----------------------------
-  ctx.save();
-  ctx.globalAlpha = Alpha;
-  drawSinglePlayer(ctx, piece);
+
 
   ctx.restore();
 }
@@ -338,7 +346,7 @@ function drawRoundedShuriken(ctx, x, y, size, rotation, coreColor) {
   const armLength = size;
   const baseWidth = size * 0.45;   // 根本（太い）
   const tipWidth  = size * 0.15;   // 先端（細い）
-  const innerR    = size * 0.25;   // 中心の“反る”丸み
+  const innerR    = size * 0.35;   // 中心の“反る”丸み
 
   ctx.beginPath();
 
@@ -412,11 +420,11 @@ export function triggerWarpAnimation() {
       return;
     }
 
-    setTimeout (() => {
-      // --- in フェーズが終わったらアニメーション完了 ---
-      game.animationType = null;
-      game.animation = null;
+    // --- in フェーズが終わったらアニメーション完了 ---
+    game.animationType = null;
+    game.animation = null;
 
+    setTimeout (() => {
       // 完了処理（宝箱方式と同じ）
       const p = game.players[anim.playerId];
 
@@ -426,10 +434,12 @@ export function triggerWarpAnimation() {
       game.remainingActions--;
       updateTurnInfo();
       renderPlayerInfo();
+      render();
 
       if (game.remainingTreasures === 0) {
         game.locked = true;
         setTimeout(() => endGame(), 3200);
+        return;
       }
 
       if (game.remainingActions <= 0) {
@@ -519,11 +529,22 @@ export function paintRandomAbility() {
   // シャッフル
   shuffle(candidates);
 
-  // 先頭 count 個を塗る
-  const targets = candidates.slice(0, count);
-  for (const t of targets) {
-    game.board[t.x][t.y].color = myColor;
-  }
+  // 0.3s 間隔で光が始まるように startTime を付ける
+  //const now = performance.now();
+  const targets = candidates.slice(0, count).map((t, i) => ({
+    x: t.x,
+    y: t.y,
+    offset: i * 200,  // 0.15秒ずつ遅らせる
+    duration: 1000     // 光の長さ
+  }));
+
+  game.animation = {
+    targets,
+    playerColor: myColor
+  };
+  console.log("drawPaintAnimation start", game.animation);
+
+  triggerPaintAnimation();
 
   // 光る状態更新
   updateGlowStates();
@@ -538,10 +559,74 @@ export function paintRandomAbility() {
 
   // 描画
   render();
+}
 
-  // ターン終了判定
-  if (game.remainingActions <= 0) {
-    endTurn();
+export function triggerPaintAnimation() {
+  const anim = game.animation;
+  anim.base = null;
+
+  function loop(now) {
+    let allDone = true;
+    if (anim.base === null) anim.base = now;  // ← ここで基準時間を確定
+
+    for (const t of anim.targets) {
+      const start = anim.base + t.offset;
+      const end   = start + t.duration;
+
+      // 色を付けるタイミング
+      if (!t.colored && now >= start) {
+        game.board[t.x][t.y].color = anim.playerColor;
+        t.colored = true;
+      }
+
+      // 光がまだ残っているか？
+      if (now < end) {
+        allDone = false;
+      }
+    }
+
+    if (!allDone) {
+      requestAnimationFrame(loop);
+      return;
+    }
+
+    // 全部終わったら終了
+    game.animationType = null;
+    game.animation = null;
+    updateGlowStates();
+    render();
+    
+    // ターン終了判定
+    if (game.remainingActions <= 0) {
+      endTurn();
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+export function drawPaintAnimation() {
+  const canvas = document.getElementById("boardCanvas");
+  const ctx = canvas.getContext("2d");
+
+  const anim = game.animation;
+  const cell = game.tileSize;
+  const now = performance.now();
+
+  for (const t of anim.targets) {
+    const start = anim.base + t.offset;
+    const end   = start + t.duration;
+
+    if (now < start || now > end) continue;
+    
+    const progress = (now - start) / t.duration;
+    const px = t.x * cell;
+    const py = t.y * cell;
+
+    // 枠線光
+    const d = cell * progress / 5;
+    ctx.strokeStyle = `rgba(235,250,100,${(1 - progress) ** 2})`;
+    ctx.lineWidth = 4;
+    ctx.strokeRect(px - d, py - d, cell + 2 * d, cell + 2 * d);
   }
 }
 

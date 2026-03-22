@@ -42,7 +42,7 @@ export function endTurn() {
   }
 
   // ここから先は演出が終わっている前提
-  game.animation = null; // リセット
+  //game.animation = null; // リセット
 
   game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
   

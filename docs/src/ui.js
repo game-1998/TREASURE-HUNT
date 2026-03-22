@@ -1,6 +1,6 @@
 import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
-import { clearBoardAbility, drawPlayers, drawWarpAnimation } from "./player.js";
+import { clearBoardAbility, drawPlayers, drawWarpAnimation, drawPaintAnimation } from "./player.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
@@ -22,11 +22,18 @@ export function showScreen(name) {
 }
 
 export function render() {
+  console.log("call render");
   drawBoard();
   drawPlayers();
 
   if (game.animationType === "warp") {
     drawWarpAnimation();
+    requestAnimationFrame(render);
+    return;
+  }
+
+  if (game.animationType === "paintRandom") {
+    drawPaintAnimation();
     requestAnimationFrame(render);
     return;
   }
@@ -313,7 +320,7 @@ export function drawTreasureAnimation() {
   // 3秒で progress が 3.0 になるように進める
   game.animation.progress += 1 / 60; // 60fps → 1秒で1進む
 
-  if (game.animation.progress >= 3.0) {
+  if (game.animation.progress > 3.0) {
     game.animation = null;
     game.animationType = null;
     if (game.onAnimationEnd) {
