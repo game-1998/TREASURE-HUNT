@@ -1,5 +1,5 @@
 import { game, updateGlowStates } from "./state.js";
-import { playAllClearEffect, render, renderPlayerInfo, triggerTreasureAnimation,
+import { render, renderPlayerInfo, triggerTreasureAnimation,
          updateTreasureInfo, updateTurnInfo } from "./ui.js";
 import { endTurn, endGame } from "./turn.js";
 import { ColorMap } from "./state.js";
@@ -72,6 +72,13 @@ export function drawPlayers() {
   for (let p of game.players) {
     //ワープ中のプレイヤーは描かない
     if (game.animationType === "warp" && game.animation.playerId === game.players.indexOf(p)) {
+      continue;
+    }
+    if (game.animationType === "randomMove"
+        && game.animation.playerId === game.players.indexOf(p)
+        && ((game.animation.progress > 0.25 && game.animation.phase === "out")
+        || game.animation.phase === "in"))
+    {
       continue;
     }
     drawSinglePlayer(ctx, p);
@@ -423,6 +430,13 @@ export function triggerWarpAnimation() {
     // --- in フェーズが終わったらアニメーション完了 ---
     game.animationType = null;
     game.animation = null;
+    game.remainingActions--;
+    updateTurnInfo();
+    renderPlayerInfo();
+    render();
+    if (game.remainingActions <= 0) {
+      game.locked = true;
+    }
 
     setTimeout (() => {
       // 完了処理（宝箱方式と同じ）
@@ -431,9 +445,6 @@ export function triggerWarpAnimation() {
       treasureJudge(p.x, p.y);
       updateGlowStates();
 
-      game.remainingActions--;
-      updateTurnInfo();
-      renderPlayerInfo();
       render();
 
       if (game.remainingTreasures === 0) {
@@ -668,33 +679,275 @@ export function randomMoveAbility(targetId) {
   // ランダムに1つ選ぶ
   const pos = candidates[Math.floor(Math.random() * candidates.length)];
 
-  // 移動
-  target.x = pos.x;
-  target.y = pos.y;
+  game.animation = {
+    phase: "out",
+    progress: 0,
+    duration: 3000,
+    playerId: targetId,
+    toX: pos.x,
+    toY: pos.y
+  };
+  triggerTornadoAnimation();
 
-  // 宝箱取得判定（移動先に宝箱があれば）
-  treasureJudge(pos.x, pos.y);
+  game.highlight = null;
+  render();
 
   // スキル消費
   const p = game.players[game.currentPlayerId];
   p.specialUsed = true;
   renderPlayerInfo();
 
-  // アクション消費
-  game.remainingActions--;
-  updateTurnInfo();
-
-  game.highlight = null;
-  // 描画
-  render();
-
-  // ターン終了判定
-  if (game.remainingActions <= 0) {
-    endTurn();
-  }
-
   // モード解除
   game.mode = "normal";
+}
+
+export function drawTornadoAnimation() {
+  const anim = game.animation;
+  const canvas = document.getElementById("boardCanvas");
+  const ctx = canvas.getContext("2d");
+  const piece = game.players[anim.playerId];
+  const cell = game.tileSize;
+
+  if (anim.phase === "in"){
+    drawTornadoPlayer(ctx, piece);
+    return;
+  }
+
+  // 横移動（左→右）
+  const moveDist = cell * 2; // 好みに応じて調整
+  const ease = anim.progress - 0.5; // イージング
+  const offsetX = moveDist * ease;
+
+  // あなたが調整した位置（0.9）＋ 横移動
+  const cx = piece.x * cell + cell / 2 + offsetX;
+  const cy = piece.y * cell + cell * 0.9;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  const layers = 14;
+  const maxR = cell * 0.5;
+  const minR = cell * 0.05;
+  const height = cell * 1.1;
+
+  const tAnim = anim.progress;
+
+  for (let i = 0; i < layers; i++) {
+    const t = i / (layers - 1); // 0:上, 1:下
+    const r = maxR * (1 - t) + minR * t;
+    const yPos = -height * (1 - t);
+
+    // 揺れプロファイル（真ん中最大・上軽く・下ゼロ）
+    let base = 1 - Math.abs(t - 0.3) / 0.7;
+    base = Math.max(0, base);
+
+    const maxAmp = 8;
+    let swayAmp = maxAmp * base;
+
+    //if (t < 0.2) swayAmp *= 0.4; // 上は軽く
+    if (t > 0.85) swayAmp = 0;  // 下は固定
+
+    const sway = Math.sin(tAnim * Math.PI * 6 + t * 5) * swayAmp;
+
+    ctx.save();
+    ctx.rotate(0);
+    ctx.translate(sway, 0);
+
+    let fade = 1;
+    if (anim.progress < 0.15) {
+      fade *= anim.progress / 0.15;
+    } else if (anim.progress > 0.9) {
+      fade *= (1 - anim.progress) / 0.1;
+    }
+
+    const alpha = (0.30 + (1 - t) * 0.18) * fade;
+
+    ctx.beginPath();
+    ctx.ellipse(0, yPos, r, r * 0.35, 0, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  drawTornadoPlayer(ctx, piece);
+  ctx.restore();
+}
+
+export function triggerTornadoAnimation() {
+  const anim = game.animation;
+  function loopTornado(now) {
+    if (!anim.start) anim.start = now;
+    const elapsed = now - anim.start;
+
+    anim.progress = elapsed / anim.duration;
+
+    if (anim.progress < 1) {
+      requestAnimationFrame(loopTornado);
+      return;
+    }
+
+    // ★ progress が 1 に到達
+    anim.progress = 1;
+    const p = game.players[anim.playerId];
+
+    if (anim.phase === "out") {
+      // ★ 位置を変える
+      p.x = anim.toX;
+      p.y = anim.toY;
+
+      // ★ in フェーズへ切り替え
+      anim.phase = "in";
+      anim.progress = 0;
+      anim.start = null; // 時間リセット
+      anim.duration = 2500; // フェードインは短め
+
+      requestAnimationFrame(loopTornado);
+      return;
+    }
+
+    // ★ in フェーズが終わったら終了
+    game.animationType = null;
+    game.animation = null;
+    // アクション消費
+    game.remainingActions--;
+    updateTurnInfo();
+    renderPlayerInfo();
+    render();
+    if (game.remainingActions <= 0) {
+      game.locked = true;
+    }
+
+    setTimeout (() => {
+      // 宝箱取得判定（移動先に宝箱があれば）
+      treasureJudge(p.x, p.y);
+      updateGlowStates();
+
+      render();
+
+      if (game.remainingTreasures === 0) {
+        game.locked = true;
+        setTimeout(() => endGame(), 3200);
+        return;
+      }
+
+      // ターン終了判定
+      if (game.remainingActions <= 0) {
+        endTurn();
+      }
+    }, 300);
+  }
+  requestAnimationFrame(loopTornado);
+}
+
+export function drawTornadoPlayer(ctx, piece) {
+  const anim = game.animation;
+  const p = anim.progress;
+  const cell = game.tileSize;
+
+  ctx.save();
+
+  if (anim.phase === "out"){
+    // ★ 張り付きアニメ（0.25〜0.55）
+    if (p > 0.25 && p < 1) {
+      const t = (p - 0.25) / 0.75; // 0→1
+
+      // --- 竜巻の外周に張り付く ---
+      const maxR = cell * 0.45;
+      const radius = maxR * t; // 中心へ吸い寄せ
+
+      // 竜巻の揺れと同期した角度
+      const angle = t * Math.PI * 6; // 1回転ぶん揺れる
+
+      // 張り付き位置
+      const tx = Math.cos(angle) * radius;
+
+      // 巻き上げ
+      const ty = Math.sin(-t * Math.PI / 2) * cell;
+
+      ctx.translate(tx, ty);
+
+      // --- ★ Y軸回転（奥行き表現） ---
+      const flip = Math.sin(t * Math.PI * 6); // 2回転ぶんの奥行き
+      ctx.scale(flip, 1);
+
+      // 奥に行った時は小さく暗く
+      const depth = (flip + 1) / 2; // 0〜1
+      const scale = 1 - depth * 0.3;
+      ctx.scale(scale, scale);
+      ctx.globalAlpha = 1 - depth * 0.4;
+
+      const r = cell * 0.3;
+      const grad = ctx.createRadialGradient(0, 0, 0.1, 0, 0, r);
+      grad.addColorStop(0, lighten(piece.color, 0.1));
+      grad.addColorStop(0.4, piece.color);
+      grad.addColorStop(1, darken(piece.color, 0.15));
+
+      ctx.beginPath();
+      ctx.arc(0, 0, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+  
+  if (anim.phase === "in") {
+    const t = anim.progress; // 0→1
+    const cx = piece.x * cell + cell/2;
+    const cy = piece.y * cell + cell/2;
+
+    ctx.translate(cx, cy);
+
+    // ① 落下（0→0.3）
+    if (t < 0.1) {
+      const fall = (0.1 - t) * 5;
+      ctx.translate(0, -fall * cell); // 上から落ちる
+      ctx.globalAlpha = t / 0.1;
+    }
+
+    // ② 着地後の「ふち回転」（0.3→1）
+    else {
+      ctx.globalAlpha = 1;
+      const tt = (t - 0.1) / 0.9; // 0→1
+
+      // ★ 減衰する回転（コインがクルッと回る）
+      const spin = 6 * Math.PI * tt;
+
+      // 回転（ふちでクルッ）
+      ctx.rotate(spin);
+
+      // ★ 少しだけ縦につぶす（コインの厚み感）
+      const squash = 1 - Math.abs(Math.cos(6 * Math.PI * tt)) * 0.2 * (1 - tt);
+      ctx.scale(1, squash);
+    }
+
+    // ★ ここで円を描いて return
+    const r = cell * 0.3;
+    const grad = ctx.createRadialGradient(0, 0, 0.1, 0, 0, r);
+    grad.addColorStop(0, lighten(piece.color, 0.1));
+    grad.addColorStop(0.4, piece.color);
+    grad.addColorStop(1, darken(piece.color, 0.15));
+
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    if (piece.isGlowing) {
+      ctx.save();
+      ctx.strokeStyle = "#e5ff00";
+      ctx.lineWidth = r * 0.17;
+      ctx.shadowColor = "#e5ff00";
+      ctx.shadowBlur = r * 0.51;
+      ctx.beginPath();
+      ctx.arc(0, 0, r * 1.4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+    ctx.restore();
+    return;
+  }
 }
 
 export function getPlayerAt(x, y) {

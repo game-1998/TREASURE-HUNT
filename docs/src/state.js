@@ -143,16 +143,6 @@ function preloadChestImages() {
   });
 }
 
-export function assignRandomAbilities() {
-  const abilities = ["warp", "clearBoard", "paintRandom", "randomMove"];
-
-  for (const p of game.players) {
-    const r = Math.floor(Math.random() * abilities.length);
-    p.specialType = abilities[r];
-    p.specialUsed = false;
-  }
-}
-
 export function allPlayersOpened() {
   return game.players.every(p => p.openedTreasure === true);
 }

@@ -32,7 +32,7 @@ export function endTurn() {
   game.locked = true;
 
   // 演出中なら、演出終了後にもう一度 endTurn を呼ぶ
-  if (game.animationType === "clearBoard" || game.animationType === "treasure" || game.animationType === "warp") {
+  if (game.animationType) {
     game.onAnimationEnd = () => {
       setTimeout(() => {
         endTurn();
@@ -40,9 +40,6 @@ export function endTurn() {
     };
     return;
   }
-
-  // ここから先は演出が終わっている前提
-  //game.animation = null; // リセット
 
   game.currentPlayerId = (game.currentPlayerId + 1) % game.players.length;
   

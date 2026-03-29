@@ -1,6 +1,6 @@
 import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
-import { clearBoardAbility, drawPlayers, drawWarpAnimation, drawPaintAnimation } from "./player.js";
+import { clearBoardAbility, drawPlayers, drawWarpAnimation, drawPaintAnimation, drawTornadoAnimation } from "./player.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
@@ -34,6 +34,12 @@ export function render() {
 
   if (game.animationType === "paintRandom") {
     drawPaintAnimation();
+    requestAnimationFrame(render);
+    return;
+  }
+
+  if (game.animationType === "randomMove") {
+    drawTornadoAnimation();
     requestAnimationFrame(render);
     return;
   }
@@ -629,4 +635,3 @@ export function playAllClearEffect() {
     flash.style.transition = "--r 3s ease-out";
   }, 4600);
 }
-
