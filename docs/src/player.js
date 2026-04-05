@@ -3,6 +3,7 @@ import { render, renderPlayerInfo, triggerTreasureAnimation,
          updateTreasureInfo, updateTurnInfo } from "./ui.js";
 import { endTurn, endGame } from "./turn.js";
 import { ColorMap } from "./state.js";
+import { effectSound } from "./soundManager.js";
 
 export function createPlayers() {
   game.players = [];
@@ -158,6 +159,7 @@ export function movePlayer(dx, dy) {
   // 移動
   p.x = nx;
   p.y = ny;
+  effectSound("move", 1);
 
   // 宝箱取得チェック
   treasureJudge(nx, ny);
@@ -261,7 +263,7 @@ export function drawWarpAnimation() {
     if (progress > spiralTime) {
       radius = 0;
     }
-    // 弾け：progress が 0.9 を超えたら外へ飛ぶ
+    // 弾け：progress が 0.7 を超えたら外へ飛ぶ
     if (progress > spiralTime + 0.1) {
       const explodeT = (progress - spiralTime - 0.1) / (1 - spiralTime - 0.1); // 0→1
       radius = radiusMax * explodeT;
@@ -288,6 +290,9 @@ export function drawWarpAnimation() {
       particleAlpha = 1 - fadeT;           // 1→0
       pieceAlpha = 1 - fadeT;
     }
+  } else if (anim.phase === "stay") {
+    // コマを表示しない
+    pieceAlpha = 0;
   } else {
     // IN は今まで通り（逆再生）
     pieceAlpha = progress;
@@ -321,7 +326,7 @@ export function drawWarpAnimation() {
         // ★ 弾けるときは角度固定（直線）
         angle = angleBase;
       }
-    } else {
+    } else if (anim.phase === "in") {
       // IN は OUT の逆再生
       if (progress < 0.1) {
         // 弾け逆再生（外→中心）
@@ -397,10 +402,20 @@ function drawRoundedShuriken(ctx, x, y, size, rotation, coreColor) {
 export function triggerWarpAnimation() {
   const anim = game.animation;
   const start = performance.now();
+  let sound = false;
+
+  if (anim.phase === "out"){
+    effectSound("warp_1", 1);
+  }
 
   function loop(now) {
     const elapsed = now - start;
     anim.progress = elapsed / anim.duration;
+
+    if (!sound && anim.phase === "out" && anim.progress > 0.65) {
+      effectSound("warp_2", 1);
+      sound = true;
+    }
 
     if (anim.progress < 1) {
       requestAnimationFrame(loop);
@@ -411,6 +426,17 @@ export function triggerWarpAnimation() {
     anim.progress = 1;
 
     if (anim.phase === "out") {
+      // stay フェーズへ切り替え
+      anim.phase = "stay";
+      anim.duration = 1000;
+
+      // stay フェーズのアニメーションを開始
+      triggerWarpAnimation();
+      return;
+    }
+
+    if (anim.phase === "stay") {
+      effectSound("warp_3", 1);
       // ★ ここで位置を変える
       const p = game.players[anim.playerId];
       p.x = anim.toX;
@@ -419,6 +445,7 @@ export function triggerWarpAnimation() {
 
       // ★ in フェーズへ切り替え
       anim.phase = "in";
+      anim.duration = 2000;
       anim.progress = 0;
       game.board[p.x][p.y].color = ColorMap[p.color];
 
@@ -541,12 +568,12 @@ export function paintRandomAbility() {
   shuffle(candidates);
 
   // 0.3s 間隔で光が始まるように startTime を付ける
-  //const now = performance.now();
   const targets = candidates.slice(0, count).map((t, i) => ({
     x: t.x,
     y: t.y,
     offset: i * 200,  // 0.15秒ずつ遅らせる
-    duration: 1000     // 光の長さ
+    duration: 1000,   // 光の長さ
+    sound: false
   }));
 
   game.animation = {
@@ -628,7 +655,12 @@ export function drawPaintAnimation() {
     const end   = start + t.duration;
 
     if (now < start || now > end) continue;
-    
+
+    if (!t.sound){
+      effectSound("paint", 1);
+      t.sound = true;
+    }
+
     const progress = (now - start) / t.duration;
     const px = t.x * cell;
     const py = t.y * cell;
@@ -685,7 +717,8 @@ export function randomMoveAbility(targetId) {
     duration: 3000,
     playerId: targetId,
     toX: pos.x,
-    toY: pos.y
+    toY: pos.y,
+    passed: false
   };
   triggerTornadoAnimation();
 
@@ -776,6 +809,7 @@ export function drawTornadoAnimation() {
 
 export function triggerTornadoAnimation() {
   const anim = game.animation;
+  effectSound("tornado_1", 1);
   function loopTornado(now) {
     if (!anim.start) anim.start = now;
     const elapsed = now - anim.start;
@@ -792,6 +826,7 @@ export function triggerTornadoAnimation() {
     const p = game.players[anim.playerId];
 
     if (anim.phase === "out") {
+      effectSound("tornado_2", 1);
       // ★ 位置を変える
       p.x = anim.toX;
       p.y = anim.toY;
@@ -893,32 +928,46 @@ export function drawTornadoPlayer(ctx, piece) {
   }
   
   if (anim.phase === "in") {
-    const t = anim.progress; // 0→1
     const cx = piece.x * cell + cell/2;
     const cy = piece.y * cell + cell/2;
 
     ctx.translate(cx, cy);
 
     // ① 落下（0→0.3）
-    if (t < 0.1) {
-      const fall = (0.1 - t) * 5;
+    if (p < 0.1) {
+      const fall = (0.1 - p) * 5;
       ctx.translate(0, -fall * cell); // 上から落ちる
-      ctx.globalAlpha = t / 0.1;
+      ctx.globalAlpha = p / 0.1;
     }
 
     // ② 着地後の「ふち回転」（0.3→1）
     else {
       ctx.globalAlpha = 1;
-      const tt = (t - 0.1) / 0.9; // 0→1
+      const tt = (p - 0.1) / 0.9; // 0→1
 
       // ★ 減衰する回転（コインがクルッと回る）
-      const spin = 6 * Math.PI * tt;
+      const spin = 10 * Math.PI * tt ** 1.5;
+
+      // ★ 閾値チェック（0,0.2,0.4,0.6,0.8）
+      const thresholds = [Math.PI, Math.PI * 2, Math.PI * 3, Math.PI * 4, Math.PI * 5, Math.PI * 6, Math.PI * 7, Math.PI * 8, Math.PI * 9];
+      for (let i = 0; i < thresholds.length; i++) {
+        const th = thresholds[i];
+        if (anim.passed && anim.prevSpin < th && spin >= th) {
+          effectSound("tornado_3", 1 - i * 0.08);
+        }
+
+        if (!anim.passed) {
+          effectSound("tornado_3", 1);
+          game.animation.passed = true;
+        }
+      }
+      anim.prevSpin = spin;
 
       // 回転（ふちでクルッ）
       ctx.rotate(spin);
 
       // ★ 少しだけ縦につぶす（コインの厚み感）
-      const squash = 1 - Math.abs(Math.cos(6 * Math.PI * tt)) * 0.2 * (1 - tt);
+      const squash = 1 - Math.abs(Math.cos(10 * Math.PI * tt ** 1.5)) * 0.4 * (1 - tt);
       ctx.scale(1, squash);
     }
 

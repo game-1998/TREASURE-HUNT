@@ -1,6 +1,7 @@
 import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
 import { clearBoardAbility, drawPlayers, drawWarpAnimation, drawPaintAnimation, drawTornadoAnimation } from "./player.js";
+import { effectSound, rollSound, stopSound} from "./soundManager.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
@@ -226,7 +227,9 @@ export function triggerTreasureAnimation(x, y) {
     x,
     y,
     progress: 0, // 0 → 1 で進む
-    particles: []
+    particles: [],
+    sound1: false,
+    sound2:false
   };
 }
 
@@ -247,6 +250,10 @@ export function drawTreasureAnimation() {
 
   // --- 出現（0〜0.4秒） ---
   if (t < 0.6) {
+    if (!game.animation.sound1) {
+      effectSound("treasure_1", 1);
+      game.animation.sound1 = true;
+    }
     const p = t / 0.6;
     scale = 0.6 + p * 0.6; // 0.6 → 1.2
     alpha = p;            // 0 → 1
@@ -290,6 +297,10 @@ export function drawTreasureAnimation() {
 
   // --- キラキラ粒子 ---
   if (t > 0.6 && t < 2) {
+    if (!game.animation.sound2) {
+      effectSound("treasure_2", 1);
+      game.animation.sound2 = true;
+    }
     const particleSize = game.tileSize * 0.05;
     for (const p of game.animation.particles) {
       // 進行
@@ -482,14 +493,21 @@ export function runSkillRouletteAnimation() {
     const skillLabel = slot.querySelector(".skillLabel");
 
     let t = 0;
+    let prevR = 5;
+
+    rollSound("roll", 1);
 
     const interval = setInterval(() => {
-      const r = Math.floor(Math.random() * abilities.length);
+      let r = Math.floor(Math.random() * abilities.length);
+      if (r === prevR) r = (r + 1) % abilities.length;
+      prevR = r;
       skillIcon.src = `./src/images/${abilities[r]}.svg`;
       skillLabel.textContent = SkillMap[abilities[r]];
       t++;
 
       if (t > 20 + Math.random() * 20) {
+        stopSound("roll");
+        rollSound("stop", 1);
         clearInterval(interval);
 
         // 最終決定
@@ -498,7 +516,7 @@ export function runSkillRouletteAnimation() {
         skillLabel.textContent = SkillMap[abilities[final]];
         game.players[index].specialType = abilities[final];
         game.players[index].specialUsed = false;
-
+        
         index++;
         setTimeout(spinNext, 300);
       }
@@ -610,6 +628,8 @@ export function playAllClearEffect() {
   flash.style.height = rect.height + "px";
   flash.style.left = rect.left + "px";
   flash.style.top = rect.top + "px";
+
+  effectSound("allclear", 1);
 
   // 光を点灯
   setTimeout(() => {

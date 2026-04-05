@@ -1,7 +1,9 @@
 import { render, renderResultScreen, updateTurnInfo, showScreen, renderPlayerInfo } from "./ui.js";
 import { game } from "./state.js";
+import { effectSound } from "./soundManager.js";
 
 export function startGame() {
+  game.locked = true;
   game.currentPlayerId = 0;
   game.remainingActions = 2;
 
@@ -56,6 +58,7 @@ export function endGame() {
 }
 
 export function showTurnChange(name) {
+  effectSound("turnchange", 0.8);
   const overlay = document.getElementById("turnOverlay");
   const dimmer = document.getElementById("turnDimmer");
 
