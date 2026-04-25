@@ -87,7 +87,7 @@ export function drawPlayers() {
 }
 
 // 色を明るくする
-function lighten(hex, amount) {
+export function lighten(hex, amount) {
   const c = parseInt(hex.slice(1), 16);
   let r = (c >> 16) + Math.floor(255 * amount);
   let g = ((c >> 8) & 0xff) + Math.floor(255 * amount);
@@ -96,7 +96,7 @@ function lighten(hex, amount) {
 }
 
 // 色を暗くする
-function darken(hex, amount) {
+export function darken(hex, amount) {
   const c = parseInt(hex.slice(1), 16);
   let r = (c >> 16) - Math.floor(255 * amount);
   let g = ((c >> 8) & 0xff) - Math.floor(255 * amount);
@@ -441,7 +441,7 @@ export function triggerWarpAnimation() {
       const p = game.players[anim.playerId];
       p.x = anim.toX;
       p.y = anim.toY;
-      
+      updateGlowStates();
 
       // ★ in フェーズへ切り替え
       anim.phase = "in";
@@ -830,6 +830,7 @@ export function triggerTornadoAnimation() {
       // ★ 位置を変える
       p.x = anim.toX;
       p.y = anim.toY;
+      updateGlowStates();
 
       // ★ in フェーズへ切り替え
       anim.phase = "in";

@@ -2,6 +2,7 @@ import { game, SkillMap, allPlayersOpened } from "./state.js";
 import { drawBoard } from "./boad.js";
 import { clearBoardAbility, drawPlayers, drawWarpAnimation, drawPaintAnimation, drawTornadoAnimation } from "./player.js";
 import { effectSound, rollSound, stopSound} from "./soundManager.js";
+import { startDemoSkillAnimation } from "./demo.js";
 
 const chestImg = new Image();
 chestImg.src = "./src/images/chest_close.png";
@@ -14,6 +15,7 @@ export const chestImages = {
 
 
 export function showScreen(name) {
+  document.getElementById("titleScreen").style.display = "none";
   document.getElementById("homeScreen").style.display = "none";
   document.getElementById("skillScreen").style.display = "none";
   document.getElementById("gameScreen").style.display = "none";
@@ -655,3 +657,82 @@ export function playAllClearEffect() {
     flash.style.transition = "--r 3s ease-out";
   }, 4600);
 }
+
+// スキル一覧
+const skills = [
+  { name: "ワープ", desc: "好きなマスへ移動する。<br>他プレイヤーの色のマスには移動できない。", video: "./src/images/warp.mp4" },
+  { name: "オールクリア", desc: "すべてのマスの色をリセットする。", video: "./src/images/allclear.mp4" },
+  { name: "ランダム・ペイント", desc: "ランダムなマスを自分の色に塗る。<br>塗るマスの数はボードサイズと同じ。<br>（例：7×7マス⇒7マス）", video: "./src/images/randompaint.mp4" },
+  { name: "ランダム・ムーブ", desc: "選択したプレイヤーを<br>そのプレイヤーの色のマスへ<br>ランダムに移動させる。", video: "./src/images/randommove.mp4" },
+];
+
+function renderSkillUI() {
+  const tabs = document.getElementById("skillTabs");
+  const pages = document.getElementById("skillPages");
+
+  tabs.innerHTML = "";
+  pages.innerHTML = "";
+
+  skills.forEach((skill, i) => {
+    // タブ生成
+    const tab = document.createElement("div");
+    tab.className = "tab";
+    tab.textContent = skill.name;
+    tab.dataset.index = i;
+    tabs.appendChild(tab);
+
+    // ページ生成（video → canvas に変更済み）
+    const page = document.createElement("div");
+    page.className = "page";
+    page.id = `page-${i}`;
+    page.innerHTML = `
+      <label class="skillname">${skill.name}</label>
+      <canvas class="skillCanvas"></canvas>
+      <p>${skill.desc}</p>
+    `;
+    pages.appendChild(page);
+  });
+
+  // タブクリックでページ切り替え
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const index = Number(tab.dataset.index);
+
+      // タブの active 切り替え
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      // ページの active 切り替え
+      document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+      const activePage = document.getElementById(`page-${index}`);
+      activePage.classList.add("active");
+
+      // ★ Canvas アニメ開始
+      const canvas = activePage.querySelector(".skillCanvas");
+      startDemoSkillAnimation(index, canvas);
+    });
+  });
+
+  // 初期状態（最初のスキルを表示）
+  const firstTab = document.querySelector(".tab");
+  const firstPage = document.querySelector(".page");
+
+  if (firstTab && firstPage) {
+    firstTab.classList.add("active");
+    firstPage.classList.add("active");
+
+    const canvas = firstPage.querySelector(".skillCanvas");
+    startDemoSkillAnimation(0, canvas);
+  }
+}
+
+export function openSkillList() {
+  renderSkillUI();
+  document.getElementById("skillListOverlay").classList.remove("hidden");
+}
+
+export function closeSkillList() {
+  document.getElementById("skillListOverlay").classList.add("hidden");
+}
+
+document.getElementById("closeSkillList").onclick = closeSkillList;

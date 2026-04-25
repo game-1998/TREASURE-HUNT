@@ -8,10 +8,16 @@
 </head>
 <body>
 
-  <!-- スタート画面 -->
-  <div id="homeScreen">
+  <!-- タイトル画面 -->
+  <div id="titleScreen">
     <h1>💎トレジャーハント💎</h1>
+    <button id="startButton">ゲーム開始</button>
+    <button id="openSkillListButton">スキル一覧</button>
+  </div>
 
+  <!-- スタート画面 -->
+  <div id="homeScreen" style="display:none;">
+    <h2>ゲーム設定</h2>
     <div class="form-row settings-row">
       <label>プレイヤー人数</label>
       <select id="playerCount">
@@ -34,7 +40,7 @@
     <!-- プレイヤー名入力欄（動的に生成） -->
     <div id="playerNameContainer"></div>
 
-    <button id="startButton">ゲーム開始</button>
+    <button id="decisionButton">決定</button>
   </div>
 
   <!-- スキル抽出画面 -->
@@ -87,6 +93,18 @@
     </div>    
   </div>
 
-  <script type="module" src="src/main.js?v=20260405"></script>
+  <!-- スキル一覧 -->
+  <div id="skillListOverlay" class="hidden">
+    <div id="demoClearFlash"></div>
+    <div class="skillListContent">
+      <div id="skillTabs" class="tabs"></div>
+      <div id="skillPages" class="pages">
+        <!-- JSでスキルごとのページを生成 -->
+      </div>
+      <button id="closeSkillList">閉じる</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js?v=202604026"></script>
 </body>
 </html>

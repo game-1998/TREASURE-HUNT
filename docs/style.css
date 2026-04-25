@@ -4,19 +4,169 @@ html, body {
   text-align: center;
 }
 
-/* --- ホーム画面 --------------------------------------------------------- */
+#skillListOverlay {
+  width: 100dvw;
+  height: 100dvh;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+#skillListOverlay.hidden {
+  display: none;
+}
+
+.skillListContent {
+  width: 90%;
+  height: 80%;
+  background: #fff;
+  padding: 20px;
+  overflow-y: auto;
+  border-radius: 12px;
+  display: flex;          /* ← これが重要 */
+  flex-direction: column; /* ← 上から下に並べる */
+}
+
+.hidden {
+  display: none;
+}
+
+.tabs {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding: 10px;
+  border-bottom: 2px solid #ccc;
+}
+
+.tab {
+  padding: 8px 14px;
+  white-space: nowrap;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.tab.active {
+  background: #007bff;
+  color: white;
+}
+
+#skillPages {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.page {
+  display: none; /* ← 切り替え方式のポイント */
+}
+
+.page.active {
+  display: block;
+}
+
+.skillname {
+  display: block;
+  font-size: 26px;
+  font-weight: bold;
+  margin: 16px;
+}
+.page video {
+  width: 90%;         /* ← intrinsic size を殺す */
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+#closeSkillList {
+  margin-top: auto;       /* ← これで一番下に押し付ける */
+  align-self: center;     /* ← 中央に配置したい場合 */
+  padding: 10px 20px;
+}
+
+.skillCanvas {
+  width: 80%;
+  aspect-ratio: 1 / 1;
+  display: block;
+  margin: 0 auto;
+}
+
+#demoClearFlash {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  --r: 0%;
+  background: radial-gradient(circle,
+    rgba(255,255,255,1) 0%,
+    rgba(255,255,255,1) var(--r),
+    rgba(255,255,255,0) calc(var(--r) + 20%)
+  );
+  opacity: 0;
+  transition: --r 2.4s ease-out, opacity 1s ease-out;
+}
+
+/* --- タイトル画面 --------------------------------------------------------- */
 h1 {
-  font-size: 8dvw;
+  font-size: 9dvw;
   font-weight: 900;
+  margin: 60px auto;
   color: #ffee00;
   text-shadow: 0 0 8px rgba(0,0,0,0.7);
   animation: titlePulse 2.4s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 }
 
 @keyframes titlePulse {
-  0%   { transform: scale(0.95); }
-  50%  { transform: scale(1.05); }
-  100% { transform: scale(0.95); }
+  0%   { transform: scale(0.9); }
+  50%  { transform: scale(1.0); }
+  100% { transform: scale(0.9); }
+}
+
+#titleScreen {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  width: 100%;
+}
+
+#titleScreen button {
+  display: block;
+  width: 150px;           /* ボタン幅を揃える（任意） */
+  padding: 8px 0;
+  font-size: 15px;
+  border-radius: 8px;
+  margin: 30px auto;
+  font-weight: bold;
+  background: #76ecbb;
+}
+
+#titleScreen #startButton {
+  background: #80bbff;
+}
+
+/* --- ホーム画面 --------------------------------------------------------- */
+#homeScreen {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, 0%);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+
+  width: auto; /* ← これが重要 */
+  max-width: 90dvw; /* ← スマホ対応 */
 }
 
 .form-row {
@@ -58,8 +208,7 @@ h1 {
   justify-content: center;
   column-gap: 12px;
   row-gap: 8px;
-  margin-top: 45px;
-  margin-bottom: 35px;
+  margin: 45px auto;
 }
 
 .settings-row select {
@@ -174,7 +323,7 @@ h1 {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-#startButton {
+#decisionButton {
   margin-top: 30px;
   padding-left: 15px;
   padding-right: 15px;

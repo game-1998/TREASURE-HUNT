@@ -19,11 +19,6 @@ export const game = {
   locked: false
 };
 
-
-window.game=game;
-
-
-
 // 色候補
 export const ColorMap = {
   "#1A2BE6": "#87a7fd", // 青 → 紫寄りパステル（青と水色の距離を最大化）
@@ -146,3 +141,4 @@ function preloadChestImages() {
 export function allPlayersOpened() {
   return game.players.every(p => p.openedTreasure === true);
 }
+

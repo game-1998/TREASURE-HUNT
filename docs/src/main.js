@@ -1,4 +1,4 @@
-import { showScreen, render, runSkillRouletteAnimation, playAllClearEffect } from "./ui.js";
+import { showScreen, render, runSkillRouletteAnimation, playAllClearEffect, openSkillList } from "./ui.js";
 import { startGame } from "./turn.js";
 import { game, initializeGame } from "./state.js";
 import {movePlayer, warp, clearBoardAbility, paintRandomAbility, getPlayerAt, randomMoveAbility } from "./player.js"
@@ -15,7 +15,7 @@ let paletteOpenFor = null;
 palette.addEventListener("click", (e) => e.stopPropagation());
 
 document.addEventListener("DOMContentLoaded", () => {
-  showScreen("homeScreen");
+  showScreen("titleScreen");
   const countSelect = document.getElementById("playerCount");
   const nameContainer = document.getElementById("playerNameContainer");
 
@@ -119,8 +119,12 @@ document.addEventListener("DOMContentLoaded", () => {
     closePalette();
   });
 
-  // ゲーム開始
   document.getElementById("startButton").onclick = () => {
+    showScreen("homeScreen");
+  }
+
+  // ゲーム開始
+  document.getElementById("decisionButton").onclick = () => {
     // 色が未選択のプレイヤーがいるかチェック
     if (game.selectedColors.some(c => c === null)) {
       alert("プレイヤー全員の色を選択してください");
@@ -151,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("restartButton").onclick = () => {
-    showScreen("homeScreen");
+    showScreen("titleScreen");
     document.getElementById("rankingOverlay").style.display = "none";
 
   };
@@ -256,8 +260,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (game.mode === "randomMoveSelect") {
       const targetId = getPlayerAt(x, y); // そのマスにいるプレイヤーIDを取得
       if (targetId !== null) {
-        game.animationType = "randomMove"
-        randomMoveAbility(targetId);
+        const name = game.players[targetId].name;  // ← プレイヤー名を取得
+        if (confirm(`${name} を移動させますか？`)) {
+          game.animationType = "randomMove"
+          randomMoveAbility(targetId);
+        } else {
+          game.highlight = null;
+          game.mode = "normal";
+        }
       }
       return;
     }
@@ -277,6 +287,9 @@ document.addEventListener("DOMContentLoaded", () => {
       game.onAnimationEnd = null; // ← 実行後すぐに破棄
     }
   });
+  
+  // スキル一覧を表示
+  document.getElementById("openSkillListButton").onclick = () => openSkillList();
 });
 
 function openColorPalette(playerIndex, anchorElement) {
